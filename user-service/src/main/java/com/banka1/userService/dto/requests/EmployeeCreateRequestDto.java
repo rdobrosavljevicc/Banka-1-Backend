@@ -5,6 +5,7 @@ import com.banka1.userService.domain.enums.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -27,6 +28,10 @@ public class EmployeeCreateRequestDto {
     @NotBlank(message = "Email je obavezan")
     private String email;
 
+    @Pattern(
+            regexp = "^\\+?[0-9]{8,15}$",
+            message = "Neispravan broj telefona"
+    )
     private String brojTelefona;
 
     private String adresa;
@@ -34,9 +39,6 @@ public class EmployeeCreateRequestDto {
     @NotBlank(message = "Korisničko ime je obavezno")
     private String username;
 
-    //todo Prema specifikaciji, sifra se postavlja nakon verifikacije, postavlja korisnik istu
-//    @NotBlank(message = "Lozinka je obavezna")
-//    private String password;
 
     @NotBlank(message = "Pozicija je obavezna")
     private String pozicija;

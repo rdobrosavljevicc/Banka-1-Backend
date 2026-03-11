@@ -4,6 +4,7 @@ import com.banka1.userService.dto.responses.ErrorResponseDto;
 import com.banka1.userService.exception.BusinessException;
 import com.banka1.userService.exception.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.AmqpException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -17,6 +18,23 @@ import java.util.Map;
 @Slf4j // Lombok automatski ubacuje: private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+
+
+
+    @ExceptionHandler(AmqpException.class)
+    public ResponseEntity<ErrorResponseDto> handleRabbitMqException(AmqpException ex) {
+        // Logger + stacktrace
+        log.error("Mejl nije poslat", ex);
+
+        ErrorResponseDto error = new ErrorResponseDto(
+                "ERR_INTERNAL_SERVER",
+                "Serverska greška",
+                "Mejl nije poslat. Naš tim je obavešten."
+        );
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
 
     // Neocekivane greske (500)
     /**

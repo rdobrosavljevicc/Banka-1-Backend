@@ -61,6 +61,19 @@ CREATE TABLE confirmation_token (
                                             ON DELETE CASCADE
 );
 
+-- changeset ognjen:2
+CREATE TABLE zaposlen_permissions (
+                                      zaposlen_id BIGINT NOT NULL,
+                                      permission VARCHAR(100) NOT NULL,
+
+                                      PRIMARY KEY (zaposlen_id, permission),
+
+                                      CONSTRAINT fk_zp_zaposlen
+                                          FOREIGN KEY (zaposlen_id)
+                                              REFERENCES employees(id)
+                                              ON DELETE CASCADE
+);
+
 -- changeset ilijan:3
 -- Index za brzo pretrazivanje po imenu i prezimenu
 CREATE INDEX idx_employees_ime_prezime ON employees (ime, prezime);

@@ -25,8 +25,8 @@ import java.util.Set;
                 @Index(name = "idx_employees_pozicija", columnList = "pozicija")
         }
 )
-@SQLDelete(sql = "UPDATE employees SET deleted = true WHERE id = ? AND version = ?") // Sprecava hard delete, todo videti da li ovo zelimo i da li uopste radi
-@SQLRestriction("deleted = false") // todo Probati Where(clause="deleted=false") ako ovo ne radi
+@SQLDelete(sql = "UPDATE employees SET deleted = true WHERE id = ? AND version = ?") // Sprecava hard delete,
+@SQLRestriction("deleted = false") //
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -63,12 +63,10 @@ public class Zaposlen extends BaseEntity {
     // Sifra je hesirana
     private String password;
 
-    // TODO videti da li ostaje string, da li postaje enum
     @NotBlank
     @Column(nullable = false)
     private String pozicija;
 
-    // TODO videti da li ostaje string, da li postaje enum
     @NotBlank
     @Column(nullable = false)
     private String departman;
@@ -82,6 +80,12 @@ public class Zaposlen extends BaseEntity {
     @OneToOne(mappedBy = "zaposlen")
     private ConfirmationToken confirmationToken;
 
-    private Set<Permission> permissionSet=new HashSet<>();
-
+    @ElementCollection(targetClass = Permission.class)
+    @CollectionTable(
+            name = "zaposlen_permissions",
+            joinColumns = @JoinColumn(name = "zaposlen_id")
+    )
+    @Column(name = "permission", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Set<Permission> permissionSet = new HashSet<>();
 }

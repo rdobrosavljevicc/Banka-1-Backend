@@ -75,7 +75,7 @@ public class AuthController {
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestBody @Valid ForgotPasswordDto forgotPasswordDto)
     {
-        return new ResponseEntity<>(authService.forgotPassword(forgotPasswordDto),HttpStatus.OK);
+        return new ResponseEntity<>(authService.forgotPassword(forgotPasswordDto),HttpStatus.ACCEPTED);
     }
     /**
      * Proverava validnost tokena za reset lozinke.

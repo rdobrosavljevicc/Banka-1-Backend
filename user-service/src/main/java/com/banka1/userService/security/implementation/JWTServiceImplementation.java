@@ -1,6 +1,7 @@
 package com.banka1.userService.security.implementation;
 
 import com.banka1.userService.domain.Zaposlen;
+import com.banka1.userService.domain.enums.Permission;
 import com.banka1.userService.security.JWTService;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
@@ -16,6 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
@@ -32,6 +34,12 @@ public class JWTServiceImplementation implements JWTService {
     private String role;
     @Value("${banka.security.permissions-claim}")
     private String permission;
+    @Value("${banka.security.id}")
+    private String id;
+    @Value("${banka.security.issuer}")
+    private String issuer;
+    @Value("${banka.security.expiration-time}")
+    private Long expirationTime;
 
     /**
      * Inicijalizuje servis za potpisivanje JWT tokena.
@@ -53,12 +61,19 @@ public class JWTServiceImplementation implements JWTService {
     @Override
     public String generateJwtToken(Zaposlen zaposlen) {
 
+        List<String> permissions=new ArrayList<>();
+        for(Permission x:zaposlen.getPermissionSet())
+        {
+            permissions.add(x.name());
+        }
+
         JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                .subject(zaposlen.getIme())
-                .issuer("banka1")
-                .claim("id",zaposlen.getId())
+                .subject(zaposlen.getEmail())
+                .issuer(issuer)
+                .claim(id,zaposlen.getId())
                 .claim(role, zaposlen.getRole().name())
-                .expirationTime(new Date(System.currentTimeMillis() + 3600000))
+                .claim(permission,permissions)
+                .expirationTime(new Date(System.currentTimeMillis() + expirationTime))
                 .build();
 
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS256);

@@ -29,7 +29,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -65,6 +67,11 @@ public class CrudServiceImplementation implements CrudService {
 
         if (zaposlenRepository.existsByUsername(dto.getUsername()))
             throw new BusinessException(ErrorCode.USERNAME_ALREADY_EXISTS, "Username: " + dto.getUsername());
+
+
+        if(Period.between(dto.getDatumRodjenja(),LocalDate.now()).getYears()<18)
+            throw new BusinessException(ErrorCode.USER_TOO_YOUNG,"Korisnik mora biti punoletan");
+
 
         // Mapiranje DTO u Entitet
         Zaposlen zaposlen = employeeMapper.toEntity(dto);

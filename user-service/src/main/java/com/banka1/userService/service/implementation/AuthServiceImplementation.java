@@ -41,6 +41,10 @@ public class AuthServiceImplementation implements AuthService {
     private final RabbitClient rabbitClient;
     @Value("${url.reset-password}")
     private String urlResetPassword;
+    @Value("${token.refresh.expiration-time}")
+    private Long refreshTokenExpiration;
+    @Value("${token.confirmation.expiration-time}")
+    private Long confirmationTokenExpiration;
 
     /**
      * Generise novi pristupni token i rotira refresh token.
@@ -51,14 +55,14 @@ public class AuthServiceImplementation implements AuthService {
      */
     private TokenResponseDto generate(Zaposlen zaposlen,RefreshToken refreshToken)
     {
-        refreshToken.setExpirationDateTime(LocalDateTime.now().plusMonths(1));
+        refreshToken.setExpirationDateTime(LocalDateTime.now().plusMonths(refreshTokenExpiration));
         for(int i = 0; i < 3; i++)
         {
             String result=jwtService.generateRandomToken();
             refreshToken.setValue(jwtService.sha256Hex(result));
             try {
                 tokenRepository.save(refreshToken);
-                return new TokenResponseDto(jwtService.generateJwtToken(zaposlen),result);
+                return new TokenResponseDto(jwtService.generateJwtToken(zaposlen),result,zaposlen.getRole(),zaposlen.getPermissionSet());
             }
             catch (Exception e)
             {
@@ -114,7 +118,6 @@ public class AuthServiceImplementation implements AuthService {
     @Transactional
     @Override
     public Long check(String confirmationToken) {
-        //TODO testiraj da li ikad moze da bude razlicita duzina
         if(confirmationToken==null || confirmationToken.isBlank() || confirmationToken.length()!=43)
             throw new RuntimeException("Pogresan token");
         ConfirmationToken confirmationTokenCur=confirmationTokenRepository.findByValue(jwtService.sha256Hex(confirmationToken)).orElse(null);
@@ -132,7 +135,6 @@ public class AuthServiceImplementation implements AuthService {
      * @param aktiviraj oznacava da li operacija aktivira nalog
      * @return poruka o uspesnom zavrsetku operacije
      */
-    //todo testirati da li ce raditi bez save, ako ne dodati save
     @Transactional
     @Override
     public String editPassword(ActivateDto activateDto,boolean aktiviraj)
@@ -164,7 +166,6 @@ public class AuthServiceImplementation implements AuthService {
      * @param forgotPasswordDto zahtev sa email adresom korisnika
      * @return poruka o rezultatu operacije
      */
-    //todo videti da li flush mora jos negde al za sad mi se cini da ne mora nigde
     @Transactional
     @Override
     public String forgotPassword(ForgotPasswordDto forgotPasswordDto) {
@@ -179,17 +180,15 @@ public class AuthServiceImplementation implements AuthService {
         //System.out.println(generated);
         if(zaposlen.getConfirmationToken()!=null) {
             zaposlen.getConfirmationToken().setValue(jwtService.sha256Hex(generated));
-            zaposlen.getConfirmationToken().setExpirationDateTime(LocalDateTime.now().plusMinutes(15));
+            zaposlen.getConfirmationToken().setExpirationDateTime(LocalDateTime.now().plusMinutes(confirmationTokenExpiration));
         }
         else {
             ConfirmationToken confirmationToken=new ConfirmationToken(jwtService.sha256Hex(generated),LocalDateTime.now().plusMinutes(15),zaposlen);
-            //todo radice i bez ovoga ali sam paranoican pa ne skodi ovo
             zaposlen.setConfirmationToken(confirmationToken);
             confirmationTokenRepository.save(confirmationToken);
         }
 
 
-        //todo rabbitmq
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {

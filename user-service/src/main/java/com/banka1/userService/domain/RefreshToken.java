@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class RefreshToken extends BaseEntity{
-    //todo videcu da obrisem unique = true posto vise nije neophodno, al ne skodi
     @NotBlank
     @Column(nullable = false,unique = true)
     private String value;

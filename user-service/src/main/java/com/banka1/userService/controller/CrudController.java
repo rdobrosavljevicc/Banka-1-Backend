@@ -7,6 +7,8 @@ import com.banka1.userService.dto.requests.EmployeeUpdateRequestDto;
 import com.banka1.userService.dto.responses.EmployeeResponseDto;
 import com.banka1.userService.service.CrudService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,6 +19,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,7 +27,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/employees")
 @AllArgsConstructor
-// FIXME, MODIFIKOVATI ENDPOINTE TAKO DA PODRZAVAJU AUTH LIB, ZA SAD NEMAJU TO
+@Validated
 public class CrudController {
 
     private final CrudService crudService;
@@ -64,8 +67,8 @@ public class CrudController {
             @RequestParam(required = false) String email,
             @RequestParam(required = false) String pozicija,
             @RequestParam(required = false) String departman,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "0") @Min(value = 0) int page,
+            @RequestParam(defaultValue = "10") @Min(value = 1) @Max(value = 100) int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
 
@@ -113,6 +116,8 @@ public class CrudController {
     ) {
 
         EmployeeResponseDto updated = crudService.updateEmployee(jwt, id, updateDto);
+        if(updateDto.getAktivan()!=null && !updateDto.getAktivan())
+            return new ResponseEntity<>(updated,HttpStatus.ACCEPTED);
         return ResponseEntity.ok(updated); // OK 200
     }
 
@@ -123,7 +128,7 @@ public class CrudController {
      * @param editRequestDto podaci za samostalnu izmenu profila
      * @return azurirani prikaz korisnika
      */
-    @PostMapping("/edit")
+    @PutMapping("/edit")
     public ResponseEntity<EmployeeResponseDto> editEmployee(
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody @Valid EmployeeEditRequestDto editRequestDto
@@ -140,11 +145,10 @@ public class CrudController {
      * @param id identifikator zaposlenog za brisanje
      * @return prazan odgovor sa statusom 204
      */
-    //todo testirati ovo
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteEmployee(@AuthenticationPrincipal Jwt jwt,@PathVariable Long id) {
         crudService.deleteEmployee(id);
-        return ResponseEntity.noContent().build(); // Vraća 204 No Content
+        return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 }

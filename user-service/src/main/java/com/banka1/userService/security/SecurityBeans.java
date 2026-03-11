@@ -17,18 +17,9 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 @Configuration
-@EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityBeans {
-    /**
-     * Registruje password encoder koji se koristi za cuvanje i proveru lozinki.
-     *
-     * @return Argon2 password encoder
-     */
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8();
-    }
+
 
     /**
      * Kreira JWT dekoder zasnovan na deljenoj HMAC tajni.
@@ -41,12 +32,5 @@ public class SecurityBeans {
         SecretKey key = new SecretKeySpec(secret.getBytes(), "HmacSHA256");
         return NimbusJwtDecoder.withSecretKey(key).build();
     }
-//    @Bean
-//    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-//        http.csrf(AbstractHttpConfigurer::disable).authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-//                .formLogin(AbstractHttpConfigurer::disable)
-//                .httpBasic(AbstractHttpConfigurer::disable);
-//
-//        return http.build();
-//    }
+
 }

@@ -1,6 +1,7 @@
 package com.banka1.userService.controller;
 
 import com.banka1.userService.advice.GlobalExceptionHandler;
+import com.banka1.userService.domain.enums.Role;
 import com.banka1.userService.dto.requests.ActivateDto;
 import com.banka1.userService.dto.requests.ForgotPasswordDto;
 import com.banka1.userService.dto.requests.LoginRequestDto;
@@ -16,6 +17,8 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.HashSet;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -42,7 +45,7 @@ class AuthControllerWebMvcTest {
     @Test
     void loginReturnsTokensForValidRequest() throws Exception {
         LoginRequestDto request = new LoginRequestDto("user@banka.com", "Password12");
-        TokenResponseDto response = new TokenResponseDto("jwt-token", "refresh-token");
+        TokenResponseDto response = new TokenResponseDto("jwt-token", "refresh-token", Role.BASIC,new HashSet<>());
 
         when(authService.login(any(LoginRequestDto.class))).thenReturn(response);
 
@@ -76,7 +79,7 @@ class AuthControllerWebMvcTest {
         mockMvc.perform(post("/auth/forgot-password")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
+                .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$").value("Poslat mejl"));
     }
 

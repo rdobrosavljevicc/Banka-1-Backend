@@ -9,7 +9,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-// fixme, nisam ovaj izmestio u odgovarajuci paket jer ne znam za sta je
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class EmailDto {
     private String userEmail;

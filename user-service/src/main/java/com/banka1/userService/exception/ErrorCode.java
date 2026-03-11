@@ -9,7 +9,8 @@ public enum ErrorCode {
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "ERR_USER_001", "Zaposleni nije pronađen"),
     EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT, "ERR_USER_002", "Email adresa je već u upotrebi"),
     USERNAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "ERR_USER_003", "Korisničko ime je već zauzeto"),
-    NOT_STRONG_ROLE(HttpStatus.BAD_REQUEST,"ERR_USER_003","Nemas dovoljnu rolu");
+    NOT_STRONG_ROLE(HttpStatus.BAD_REQUEST,"ERR_USER_003","Nemas dovoljnu rolu"),
+    USER_TOO_YOUNG(HttpStatus.BAD_REQUEST,"ERR_USER_003","Korisnik mora biti punoletan");
 
     private final HttpStatus httpStatus;
     private final String code;
