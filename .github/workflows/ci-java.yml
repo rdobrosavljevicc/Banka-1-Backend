@@ -60,16 +60,13 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Cache Gradle packages
-        uses: actions/cache@v4.2.3
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ matrix.service }}-${{ hashFiles('**/*.gradle', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-${{ matrix.service }}-
-            ${{ runner.os }}-gradle-
+          gradle-version: '8.13'
+
+      - name: Generate Gradle wrapper
+        run: gradle wrapper --gradle-version=8.13
 
       - name: Build
         run: ./gradlew :${{ matrix.service }}:build -x test --no-daemon --warning-mode none --console plain
