@@ -1,15 +1,21 @@
-# Koristimo zvaničnu, laganu verziju Jave 21
-FROM eclipse-temurin:21-jre-alpine
+FROM gradle:8.14.3-jdk21-alpine AS builder
 
-# Postavljamo radni direktorijum unutar kontejnera
 WORKDIR /app
 
-# Kopiramo kompajlirani JAR fajl iz tvog build/libs foldera u kontejner
-# (Zvezdica osigurava da uhvati fajl bez obzira na tacnu verziju u imenu)
-COPY build/libs/*SNAPSHOT.jar app.jar
+COPY user-service ./user-service
+COPY security-lib ./security-lib
+COPY company-observability-starter ./company-observability-starter
 
-# Izlažemo port na kom aplikacija radi
+WORKDIR /app/user-service
+
+RUN gradle build --no-daemon
+
+FROM eclipse-temurin:21-jre-alpine
+
+WORKDIR /app
+
+COPY --from=builder /app/user-service/build/libs/*.jar app.jar
+
 EXPOSE 8081
 
-# Komanda koja se izvršava kada se kontejner pokrene
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java","-jar","app.jar"]

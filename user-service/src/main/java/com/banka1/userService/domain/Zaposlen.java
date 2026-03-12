@@ -38,68 +38,98 @@ import java.util.Set;
 @Setter
 public class Zaposlen extends BaseEntity {
 
-    /** Ime zaposlenog. */
+    /**
+     * Ime zaposlenog.
+     */
     @NotBlank
     @Column(nullable = false)
     private String ime;
 
-    /** Prezime zaposlenog. */
+    /**
+     * Prezime zaposlenog.
+     */
     @NotBlank
     @Column(nullable = false)
     private String prezime;
 
-    /** Datum rodjenja zaposlenog. */
+    /**
+     * Datum rodjenja zaposlenog.
+     */
     @Column(nullable = false)
     private LocalDate datumRodjenja;
 
-    /** Pol zaposlenog (M ili Z). */
+    /**
+     * Pol zaposlenog (M ili Z).
+     */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Pol pol;
 
-    /** Email adresa zaposlenog – mora biti jedinstvena u sistemu. */
+    /**
+     * Email adresa zaposlenog – mora biti jedinstvena u sistemu.
+     */
     @NotBlank
     @Email
     @Column(nullable = false, unique = true)
     private String email;
 
-    /** Broj telefona zaposlenog (opcioni). */
+    /**
+     * Broj telefona zaposlenog (opcioni).
+     */
     private String brojTelefona;
 
-    /** Adresa stanovanja zaposlenog (opciona). */
+    /**
+     * Adresa stanovanja zaposlenog (opciona).
+     */
     private String adresa;
 
-    /** Korisnicko ime – mora biti jedinstveno u sistemu. */
+    /**
+     * Korisnicko ime – mora biti jedinstveno u sistemu.
+     */
     @NotBlank
     @Column(nullable = false, unique = true)
     private String username;
 
-    /** BCrypt/Argon2 hash lozinke zaposlenog. */
+    /**
+     * BCrypt/Argon2 hash lozinke zaposlenog.
+     */
     private String password;
 
-    /** Pozicija (radno mesto) zaposlenog. */
+    /**
+     * Pozicija (radno mesto) zaposlenog.
+     */
     @NotBlank
     @Column(nullable = false)
     private String pozicija;
 
-    /** Departman u kome zaposleni radi. */
+    /**
+     * Departman u kome zaposleni radi.
+     */
     @NotBlank
     @Column(nullable = false)
     private String departman;
 
-    /** Indikator da li je nalog zaposlenog aktivan. */
+    /**
+     * Indikator da li je nalog zaposlenog aktivan.
+     */
     private boolean aktivan;
 
-    /** RBAC uloga zaposlenog koja odredjuje nivo pristupa. */
+    /**
+     * RBAC uloga zaposlenog koja odredjuje nivo pristupa.
+     */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
 
-    /** Aktivacioni / reset token vezan za zaposlenog (opcioni). */
+    /**
+     * Aktivacioni / reset token vezan za zaposlenog (opcioni).
+     */
     @OneToOne(mappedBy = "zaposlen")
     private ConfirmationToken confirmationToken;
 
-    /** Skup pojedinacnih permisija dodeljenih zaposlenom na osnovu njegove uloge. */
+    /**
+     * Skup pojedinacnih permisija dodeljenih zaposlenom na osnovu njegove uloge.
+     */
     @ElementCollection(targetClass = Permission.class)
     @CollectionTable(
             name = "zaposlen_permissions",
@@ -108,4 +138,25 @@ public class Zaposlen extends BaseEntity {
     @Column(name = "permission", nullable = false)
     @Enumerated(EnumType.STRING)
     private Set<Permission> permissionSet = new HashSet<>();
+
+    @Override
+    public String toString() {
+        return "Zaposlen{" +
+                "ime='" + ime + '\'' +
+                ", prezime='" + prezime + '\'' +
+                ", datumRodjenja=" + datumRodjenja +
+                ", pol=" + pol +
+                ", email='" + email + '\'' +
+                ", brojTelefona='" + brojTelefona + '\'' +
+                ", adresa='" + adresa + '\'' +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", pozicija='" + pozicija + '\'' +
+                ", departman='" + departman + '\'' +
+                ", aktivan=" + aktivan +
+                ", role=" + role +
+                ", confirmationToken=" + confirmationToken +
+                ", permissionSet=" + permissionSet +
+                '}';
+    }
 }

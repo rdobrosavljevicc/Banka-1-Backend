@@ -55,4 +55,57 @@ class ZaposlenServiceImplementationTest {
                         Permission.EMPLOYEE_MANAGE_ALL
                 );
     }
+
+    @Test
+    void setovanjePermisijaAssignsCorrectPermissionsForAgentRole() {
+        Zaposlen zaposlen = new Zaposlen();
+        zaposlen.setRole(Role.AGENT);
+
+        service.setovanjePermisija(zaposlen);
+
+        assertThat(zaposlen.getPermissionSet())
+                .containsExactlyInAnyOrder(
+                        Permission.BANKING_BASIC, Permission.CLIENT_MANAGE,
+                        Permission.SECURITIES_TRADE_LIMITED
+                );
+    }
+
+    @Test
+    void setovanjePermisijaAssignsCorrectPermissionsForSupervisorRole() {
+        Zaposlen zaposlen = new Zaposlen();
+        zaposlen.setRole(Role.SUPERVISOR);
+
+        service.setovanjePermisija(zaposlen);
+
+        assertThat(zaposlen.getPermissionSet())
+                .containsExactlyInAnyOrder(
+                        Permission.BANKING_BASIC, Permission.CLIENT_MANAGE,
+                        Permission.SECURITIES_TRADE_LIMITED,
+                        Permission.SECURITIES_TRADE_UNLIMITED, Permission.TRADE_UNLIMITED,
+                        Permission.OTC_TRADE, Permission.FUND_AGENT_MANAGE
+                );
+    }
+
+    @Test
+    void setovanjePermisijaDoesNotAssignHigherRolePermissions() {
+        Zaposlen zaposlen = new Zaposlen();
+        zaposlen.setRole(Role.BASIC);
+
+        service.setovanjePermisija(zaposlen);
+
+        assertThat(zaposlen.getPermissionSet())
+                .doesNotContain(Permission.EMPLOYEE_MANAGE_ALL, Permission.SECURITIES_TRADE_LIMITED);
+    }
+
+    @Test
+    void setovanjePermisijaIsIdempotentWhenCalledTwice() {
+        Zaposlen zaposlen = new Zaposlen();
+        zaposlen.setRole(Role.BASIC);
+
+        service.setovanjePermisija(zaposlen);
+        int sizeAfterFirst = zaposlen.getPermissionSet().size();
+        service.setovanjePermisija(zaposlen);
+
+        assertThat(zaposlen.getPermissionSet()).hasSize(sizeAfterFirst);
+    }
 }

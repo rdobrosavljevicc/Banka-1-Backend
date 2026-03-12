@@ -38,37 +38,57 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class AuthServiceImplementation implements AuthService {
 
-    /** Repozitorijum za pristup entitetima zaposlenih. */
+    /**
+     * Repozitorijum za pristup entitetima zaposlenih.
+     */
     private final ZaposlenRepository zaposlenRepository;
 
-    /** Enkoder lozinki koji se koristi za verifikaciju i hesiranje. */
+    /**
+     * Enkoder lozinki koji se koristi za verifikaciju i hesiranje.
+     */
     private final PasswordEncoder passwordEncoder;
 
-    /** Servis za generisanje i hesiranje JWT i jednokratnih tokena. */
+    /**
+     * Servis za generisanje i hesiranje JWT i jednokratnih tokena.
+     */
     private final JWTService jwtService;
 
-    /** Repozitorijum za pristup refresh tokenima. */
+    /**
+     * Repozitorijum za pristup refresh tokenima.
+     */
     private final TokenRepository tokenRepository;
 
-    /** Repozitorijum za pristup confirmation tokenima. */
+    /**
+     * Repozitorijum za pristup confirmation tokenima.
+     */
     private final ConfirmationTokenRepository confirmationTokenRepository;
 
-    /** Klijent za slanje email notifikacija putem RabbitMQ-a. */
+    /**
+     * Klijent za slanje email notifikacija putem RabbitMQ-a.
+     */
     private final RabbitClient rabbitClient;
 
-    /** Bazni URL za reset lozinke (token se dodaje kao query parametar). */
+    /**
+     * Bazni URL za reset lozinke (token se dodaje kao query parametar).
+     */
     @Value("${url.reset-password}")
     private String urlResetPassword;
 
-    /** Bazni URL za aktivaciju naloga (token se dodaje kao query parametar). */
+    /**
+     * Bazni URL za aktivaciju naloga (token se dodaje kao query parametar).
+     */
     @Value("${url.activate-account}")
     private String urlActivateAccount;
 
-    /** Trajanje refresh tokena u mesecima. */
+    /**
+     * Trajanje refresh tokena u mesecima.
+     */
     @Value("${token.refresh.expiration-time}")
     private Long refreshTokenExpiration;
 
-    /** Trajanje confirmation tokena u minutima. */
+    /**
+     * Trajanje confirmation tokena u minutima.
+     */
     @Value("${token.confirmation.expiration-time}")
     private Long confirmationTokenExpiration;
 
@@ -76,7 +96,7 @@ public class AuthServiceImplementation implements AuthService {
      * Generise novi pristupni JWT token i rotira refresh token.
      * Pokusava do 3 puta u slucaju kolizije jedinstvene vrednosti tokena.
      *
-     * @param zaposlen korisnik kome se izdaju tokeni
+     * @param zaposlen     korisnik kome se izdaju tokeni
      * @param refreshToken entitet refresh tokena koji se upisuje ili azurira
      * @return odgovor sa JWT i nehesiranim refresh tokenom
      * @throws BusinessException ako generisanje ne uspe ni posle 3 pokusaja
@@ -157,7 +177,7 @@ public class AuthServiceImplementation implements AuthService {
      * Nakon uspesne operacije confirmation token se brise.
      *
      * @param activateDto podaci sa identifikatorom potvrde, tokenom i novom lozinkom
-     * @param aktiviraj {@code true} za aktivaciju naloga, {@code false} za reset lozinke
+     * @param aktiviraj   {@code true} za aktivaciju naloga, {@code false} za reset lozinke
      * @return poruka o uspesnom zavrsetku operacije
      * @throws BusinessException ako je token nevazeci ili korisnik obrisan/neaktivan
      */

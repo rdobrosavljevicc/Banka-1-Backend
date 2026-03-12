@@ -1,11 +1,15 @@
 package com.banka1.userService.integration;
 
+import com.banka1.userService.domain.ConfirmationToken;
 import com.banka1.userService.domain.RefreshToken;
 import com.banka1.userService.domain.Zaposlen;
 import com.banka1.userService.domain.enums.Pol;
 import com.banka1.userService.domain.enums.Role;
+import com.banka1.userService.dto.requests.ForgotPasswordDto;
 import com.banka1.userService.dto.requests.LoginRequestDto;
+import com.banka1.userService.dto.requests.LogoutRequestDto;
 import com.banka1.userService.dto.requests.RefreshTokenRequestDto;
+import com.banka1.userService.dto.requests.ResendActivationDto;
 import com.banka1.userService.rabbitMQ.RabbitClient;
 import com.banka1.userService.repository.ConfirmationTokenRepository;
 import com.banka1.userService.repository.TokenRepository;
@@ -28,6 +32,8 @@ import java.time.LocalDateTime;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -140,6 +146,102 @@ class AuthEndpointsIntegrationTest {
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void logoutDeletesRefreshTokenFromDatabase() throws Exception {
+        Zaposlen employee = zaposlenRepository.save(activeEmployee("logout@banka.com", "logoutuser", Role.BASIC));
+        String rawToken = "ccccccccccccccccccccccccccccccccccccccccccc";
+
+        tokenRepository.save(new RefreshToken(
+                jwtService.sha256Hex(rawToken),
+                LocalDateTime.now().plusDays(1),
+                employee
+        ));
+        assertThat(tokenRepository.findAll()).hasSize(1);
+
+        LogoutRequestDto request = new LogoutRequestDto(rawToken);
+
+        mockMvc.perform(delete("/auth/logout")
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNoContent());
+
+        assertThat(tokenRepository.findAll()).isEmpty();
+    }
+
+    @Test
+    void logoutWithUnknownTokenReturnsNoContentSilently() throws Exception {
+        LogoutRequestDto request = new LogoutRequestDto("nonexistenttoken12345678901234567890123");
+
+        mockMvc.perform(delete("/auth/logout")
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void checkActivateReturnsConfirmationTokenId() throws Exception {
+        Zaposlen employee = zaposlenRepository.save(activeEmployee("check@banka.com", "checkuser", Role.BASIC));
+        String plainToken = "ddddddddddddddddddddddddddddddddddddddddddd";
+
+        ConfirmationToken ct = new ConfirmationToken(jwtService.sha256Hex(plainToken), employee);
+        confirmationTokenRepository.save(ct);
+
+        mockMvc.perform(get("/auth/checkActivate")
+                        .param("confirmationToken", plainToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isNumber());
+    }
+
+    @Test
+    void checkActivateReturns400ForInvalidToken() throws Exception {
+        mockMvc.perform(get("/auth/checkActivate")
+                        .param("confirmationToken", "tooshort"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void forgotPasswordReturnsAcceptedForExistingActiveUser() throws Exception {
+        Zaposlen employee = activeEmployee("forgot@banka.com", "forgotuser", Role.BASIC);
+        zaposlenRepository.save(employee);
+
+        ForgotPasswordDto request = new ForgotPasswordDto("forgot@banka.com");
+
+        mockMvc.perform(post("/auth/forgot-password")
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isAccepted());
+
+        assertThat(confirmationTokenRepository.findAll()).hasSize(1);
+    }
+
+    @Test
+    void resendActivationReturnsAcceptedForInactiveUser() throws Exception {
+        Zaposlen employee = activeEmployee("resend@banka.com", "resenduser", Role.BASIC);
+        employee.setAktivan(false);
+        zaposlenRepository.save(employee);
+
+        ResendActivationDto request = new ResendActivationDto("resend@banka.com");
+
+        mockMvc.perform(post("/auth/resend-activation")
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isAccepted());
+    }
+
+    @Test
+    void resendActivationReturnsMsgWhenUserAlreadyActive() throws Exception {
+        Zaposlen employee = activeEmployee("active@banka.com", "activeuser", Role.BASIC);
+        zaposlenRepository.save(employee);
+
+        ResendActivationDto request = new ResendActivationDto("active@banka.com");
+
+        mockMvc.perform(post("/auth/resend-activation")
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$").value("Nalog je vec aktivan"));
     }
 
     private Zaposlen activeEmployee(String email, String username, Role role) {

@@ -7,6 +7,7 @@ import org.springframework.amqp.AmqpException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -21,6 +22,7 @@ import java.util.NoSuchElementException;
  * Mapira ocekivane i neocekivane izuzetke na standardizovane HTTP odgovore sa {@link ErrorResponseDto} telom.
  */
 @RestControllerAdvice
+@Component("userServiceGlobalExceptionHandler")
 public class GlobalExceptionHandler {
 
     /**

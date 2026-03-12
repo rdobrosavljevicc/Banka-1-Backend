@@ -4,6 +4,7 @@ import com.banka1.userService.advice.GlobalExceptionHandler;
 import com.banka1.userService.domain.enums.Pol;
 import com.banka1.userService.domain.enums.Role;
 import com.banka1.userService.dto.requests.EmployeeCreateRequestDto;
+import com.banka1.userService.dto.requests.EmployeeEditRequestDto;
 import com.banka1.userService.dto.requests.EmployeeUpdateRequestDto;
 import com.banka1.userService.dto.responses.EmployeeResponseDto;
 import com.banka1.userService.service.CrudService;
@@ -69,6 +70,20 @@ class CrudControllerWebMvcTest {
     }
 
     @Test
+    void searchEmployeesWithNoFiltersReturnsAllEmployees() throws Exception {
+        EmployeeResponseDto employee = new EmployeeResponseDto(
+                2L, "Marko", "Markovic", "marko@banka.com", "marko", "Agent", "IT", true, Role.BASIC
+        );
+
+        when(crudService.searchEmployees(any(), any(), any(), any(), any(), any()))
+                .thenReturn(new PageImpl<>(List.of(employee), PageRequest.of(0, 10), 1));
+
+        mockMvc.perform(get("/employees"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(1));
+    }
+
+    @Test
     void createEmployeeReturnsCreatedForValidPayload() throws Exception {
         EmployeeCreateRequestDto request = validCreateRequest();
         EmployeeResponseDto response = new EmployeeResponseDto(
@@ -100,7 +115,7 @@ class CrudControllerWebMvcTest {
     }
 
     @Test
-    void updateEmployeeReturnsUpdatedEmployee() throws Exception {
+    void updateEmployeeReturnsOkWhenNotDeactivating() throws Exception {
         EmployeeUpdateRequestDto request = new EmployeeUpdateRequestDto();
         request.setDepartman("IT");
         request.setPozicija("Senior Agent");
@@ -120,11 +135,61 @@ class CrudControllerWebMvcTest {
     }
 
     @Test
+    void updateEmployeeReturnsAcceptedWhenDeactivating() throws Exception {
+        EmployeeUpdateRequestDto request = new EmployeeUpdateRequestDto();
+        request.setAktivan(false);
+
+        EmployeeResponseDto response = new EmployeeResponseDto(
+                5L, "Ana", "Anic", "ana@banka.com", "ana", "Agent", "IT", false, Role.AGENT
+        );
+
+        when(crudService.updateEmployee(any(), eq(5L), any(EmployeeUpdateRequestDto.class))).thenReturn(response);
+
+        mockMvc.perform(put("/employees/5")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.aktivan").value(false));
+    }
+
+    @Test
     void deleteEmployeeReturnsNoContent() throws Exception {
         doNothing().when(crudService).deleteEmployee(7L);
 
         mockMvc.perform(delete("/employees/7"))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void globalSearchReturnsPagedResults() throws Exception {
+        EmployeeResponseDto employee = new EmployeeResponseDto(
+                4L, "Ana", "Anic", "ana@banka.com", "ana", "Broker", "Prodaja", true, Role.AGENT
+        );
+
+        when(crudService.globalSearchEmployees(eq("ana"), any()))
+                .thenReturn(new PageImpl<>(List.of(employee), PageRequest.of(0, 10), 1));
+
+        mockMvc.perform(get("/employees/search")
+                        .param("query", "ana"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].email").value("ana@banka.com"))
+                .andExpect(jsonPath("$.totalElements").value(1));
+    }
+
+    @Test
+    void editEmployeeReturnsUpdatedEmployee() throws Exception {
+        EmployeeEditRequestDto request = new EmployeeEditRequestDto("Novak", null, null, null, null, null);
+        EmployeeResponseDto response = new EmployeeResponseDto(
+                6L, "Novak", "Anic", "ana@banka.com", "ana", "Broker", "Prodaja", true, Role.AGENT
+        );
+
+        when(crudService.editEmployee(any(), any(EmployeeEditRequestDto.class))).thenReturn(response);
+
+        mockMvc.perform(put("/employees/edit")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.ime").value("Novak"));
     }
 
     private EmployeeCreateRequestDto validCreateRequest() {

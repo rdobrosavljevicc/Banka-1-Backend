@@ -40,26 +40,40 @@ import java.time.Period;
 @Transactional
 public class CrudServiceImplementation implements CrudService {
 
-    /** Repozitorijum za pristup entitetima zaposlenih. */
+    /**
+     * Repozitorijum za pristup entitetima zaposlenih.
+     */
     private final ZaposlenRepository zaposlenRepository;
 
-    /** Servis za generisanje jednokratnih tokena. */
+    /**
+     * Servis za generisanje jednokratnih tokena.
+     */
     private final JWTService jwtService;
 
-    /** Repozitorijum za pristup confirmation tokenima. */
+    /**
+     * Repozitorijum za pristup confirmation tokenima.
+     */
     private final ConfirmationTokenRepository confirmationTokenRepository;
 
-    /** Klijent za slanje email notifikacija putem RabbitMQ-a. */
+    /**
+     * Klijent za slanje email notifikacija putem RabbitMQ-a.
+     */
     private final RabbitClient rabbitClient;
 
-    /** Mapper za konverziju izmedju DTO i JPA entiteta zaposlenog. */
+    /**
+     * Mapper za konverziju izmedju DTO i JPA entiteta zaposlenog.
+     */
     private final EmployeeMapper employeeMapper;
 
-    /** Naziv JWT claim-a koji nosi naziv uloge korisnika. */
+    /**
+     * Naziv JWT claim-a koji nosi naziv uloge korisnika.
+     */
     @Value("${banka.security.roles-claim}")
     private String role;
 
-    /** Bazni URL za aktivaciju naloga (token se dodaje kao query parametar). */
+    /**
+     * Bazni URL za aktivaciju naloga (token se dodaje kao query parametar).
+     */
     @Value("${url.activate-account}")
     private String activateAccount;
 
@@ -110,12 +124,12 @@ public class CrudServiceImplementation implements CrudService {
      * Pretrazuje zaposlene po pojedinacnim filterima uz paginaciju.
      * Vrednost {@code null} se tretira kao wildcard (prazan string); LIKE metakarakteri se eskejpuju.
      *
-     * @param ime filter po imenu
-     * @param prezime filter po prezimenu
-     * @param email filter po email adresi
+     * @param ime       filter po imenu
+     * @param prezime   filter po prezimenu
+     * @param email     filter po email adresi
      * @param departman filter po departmanu
-     * @param pozicija filter po poziciji
-     * @param pageable parametri paginacije
+     * @param pozicija  filter po poziciji
+     * @param pageable  parametri paginacije
      * @return stranica zaposlenih mapirana u DTO objekte
      */
     @Override
@@ -143,7 +157,7 @@ public class CrudServiceImplementation implements CrudService {
      * Ako se nalog deaktivira, salje notifikacioni email asinhorno putem RabbitMQ-a.
      *
      * @param jwt JWT korisnika koji vrsi izmenu
-     * @param id identifikator zaposlenog
+     * @param id  identifikator zaposlenog
      * @param dto podaci za azuriranje
      * @return azurirani zaposleni
      * @throws BusinessException ako zaposleni nije nadjen ili pozivalac nema dovoljno jaku ulogu
@@ -228,7 +242,7 @@ public class CrudServiceImplementation implements CrudService {
      * Vrsi globalnu pretragu zaposlenih preko jedinstvenog tekstualnog upita.
      * Upit se poredi sa imenom, prezimenom, emailom, departmanom i pozicijom.
      *
-     * @param query tekstualni upit za pretragu
+     * @param query    tekstualni upit za pretragu
      * @param pageable parametri paginacije
      * @return stranica rezultata mapirana u DTO objekte
      */
