@@ -41,6 +41,10 @@ public final class DefaultNotificationTemplateFactory implements NotificationTem
                     "Reset lozinke",
                     "Zdravo {{name}}, resetujte lozinku klikom na link:\n{{resetLink}}"
             );
+            case CLIENT_ACCOUNT_DEACTIVATED -> new EmailTemplate(
+                    "Nalog deaktiviran",
+                    "Zdravo {{name}}, vas klijentski nalog je deaktiviran."
+            );
             case UNKNOWN -> throw new IllegalArgumentException(
                     "No template is defined for notification type: " + type
             );

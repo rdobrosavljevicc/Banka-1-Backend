@@ -28,6 +28,10 @@ public enum NotificationType {
      */
     CLIENT_PASSWORD_RESET,
     /**
+     * Notification sent when a client account is deactivated/deleted.
+     */
+    CLIENT_ACCOUNT_DEACTIVATED,
+    /**
      * Fallback value used to persist unsupported or invalid incoming messages.
      */
     UNKNOWN;
@@ -42,4 +46,6 @@ public enum NotificationType {
     public static final String ROUTING_KEY_CLIENT_CREATED = "client.created";
     /** RabbitMQ routing key for client password reset events. */
     public static final String ROUTING_KEY_CLIENT_PASSWORD_RESET = "client.password_reset";
+    /** RabbitMQ routing key for client account deactivation events. */
+    public static final String ROUTING_KEY_CLIENT_ACCOUNT_DEACTIVATED = "client.account_deactivated";
 }

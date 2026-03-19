@@ -146,6 +146,14 @@ public class ClientServiceImplementation implements ClientService {
         Klijent klijent = klijentRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CLIENT_NOT_FOUND, "ID: " + id));
         klijentRepository.delete(klijent);
+
+        EmailDto emailDto = new EmailDto(klijent.getIme(), klijent.getEmail(), EmailType.CLIENT_ACCOUNT_DEACTIVATED);
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                rabbitClient.sendEmailNotification(emailDto);
+            }
+        });
     }
 
     /**
