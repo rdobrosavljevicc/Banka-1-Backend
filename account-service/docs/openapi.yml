@@ -1,10 +1,10 @@
 openapi: 3.1.0
 info:
   title: Account service API
-  description: API for accountst
+  description: API for accounts
   version: "1.0"
 servers:
-- url: http://localhost:8081
+- url: http://localhost:8084
   description: Generated server url
 paths:
   /employee/cards/{id}:
@@ -377,7 +377,7 @@ components:
           format: int64
         jmbg:
           type: string
-        currency:
+        currencyCode:
           type: string
           enum:
           - RSD
@@ -396,7 +396,7 @@ components:
         firma:
           $ref: "#/components/schemas/FirmaDto"
       required:
-      - currency
+      - currencyCode
       - nazivRacuna
       - tipRacuna
     CheckingDto:
@@ -480,9 +480,30 @@ components:
         accountLimit:
           type: number
           minimum: 0.0
+        tipLimita:
+          type: string
+          enum:
+          - MESECNI
+          - DNEVNI
       required:
       - accountLimit
-    AccountSearchResponseDto: {}
+      - tipLimita
+    AccountSearchResponseDto:
+      type: object
+      properties:
+        brojRacuna:
+          type: string
+        ime:
+          type: string
+        prezime:
+          type: string
+        accountOwnershipType:
+          type: string
+          enum:
+          - PERSONAL
+          - BUSINESS
+        tekuciIliDevizni:
+          type: string
     PageAccountSearchResponseDto:
       type: object
       properties:
@@ -492,10 +513,6 @@ components:
         totalPages:
           type: integer
           format: int32
-        first:
-          type: boolean
-        last:
-          type: boolean
         size:
           type: integer
           format: int32
@@ -508,6 +525,10 @@ components:
           format: int32
         sort:
           $ref: "#/components/schemas/SortObject"
+        first:
+          type: boolean
+        last:
+          type: boolean
         numberOfElements:
           type: integer
           format: int32
@@ -523,8 +544,6 @@ components:
           format: int64
         sort:
           $ref: "#/components/schemas/SortObject"
-        unpaged:
-          type: boolean
         paged:
           type: boolean
         pageNumber:
@@ -533,16 +552,26 @@ components:
         pageSize:
           type: integer
           format: int32
+        unpaged:
+          type: boolean
     SortObject:
       type: object
       properties:
-        unsorted:
-          type: boolean
         empty:
           type: boolean
         sorted:
           type: boolean
-    AccountResponseDto: {}
+        unsorted:
+          type: boolean
+    AccountResponseDto:
+      type: object
+      properties:
+        nazivRacuna:
+          type: string
+        brojRacuna:
+          type: string
+        raspolozivoStanje:
+          type: number
     PageAccountResponseDto:
       type: object
       properties:
@@ -552,10 +581,6 @@ components:
         totalPages:
           type: integer
           format: int32
-        first:
-          type: boolean
-        last:
-          type: boolean
         size:
           type: integer
           format: int32
@@ -568,6 +593,10 @@ components:
           format: int32
         sort:
           $ref: "#/components/schemas/SortObject"
+        first:
+          type: boolean
+        last:
+          type: boolean
         numberOfElements:
           type: integer
           format: int32
@@ -575,7 +604,26 @@ components:
           $ref: "#/components/schemas/PageableObject"
         empty:
           type: boolean
-    AccountDetailsResponseDto: {}
+    AccountDetailsResponseDto:
+      type: object
+      properties:
+        nazivRacuna:
+          type: string
+        brojRacuna:
+          type: string
+        vlasnik:
+          type: integer
+          format: int64
+        tip:
+          type: string
+        raspolozivoStanje:
+          type: number
+        rezervisanaSredstva:
+          type: number
+        stanjeRacuna:
+          type: number
+        nazivFirme:
+          type: string
     PageTransactionResponseDto:
       type: object
       properties:
@@ -585,10 +633,6 @@ components:
         totalPages:
           type: integer
           format: int32
-        first:
-          type: boolean
-        last:
-          type: boolean
         size:
           type: integer
           format: int32
@@ -601,6 +645,10 @@ components:
           format: int32
         sort:
           $ref: "#/components/schemas/SortObject"
+        first:
+          type: boolean
+        last:
+          type: boolean
         numberOfElements:
           type: integer
           format: int32
@@ -619,10 +667,6 @@ components:
         totalPages:
           type: integer
           format: int32
-        first:
-          type: boolean
-        last:
-          type: boolean
         size:
           type: integer
           format: int32
@@ -635,6 +679,10 @@ components:
           format: int32
         sort:
           $ref: "#/components/schemas/SortObject"
+        first:
+          type: boolean
+        last:
+          type: boolean
         numberOfElements:
           type: integer
           format: int32

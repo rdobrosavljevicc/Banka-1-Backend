@@ -73,10 +73,10 @@ jacoco {
 	toolVersion = "0.8.12"
 }
 
-val openApiPort =  System.getenv("ACCOUNT_DOCKER_PORT") 	?: System.getenv("ACCOUNT_SERVER_PORT")
+val openApiPort = System.getenv("ACCOUNT_SERVER_PORT")
 
 openApi {
-	apiDocsUrl.set("http://localhost:$openApiPort/v3/api-docs.yaml")
+	apiDocsUrl.set("http://localhost:8084/v3/api-docs.yaml")
 	outputDir.set(file("docs"))
 	outputFileName.set("openapi.yml")
 	waitTimeInSeconds.set(30)
