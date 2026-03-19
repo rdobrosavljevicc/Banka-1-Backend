@@ -20,14 +20,10 @@ public class AccountSearchResponseDto {
     private AccountOwnershipType accountOwnershipType;
     private String tekuciIliDevizni;
 
-    public AccountSearchResponseDto(Account account, ClientResponseDto client) {
+    public AccountSearchResponseDto(Account account) {
         this.brojRacuna = account.getBrojRacuna();
-
-        if (client != null) {
-            this.ime = client.getIme();
-            this.prezime = client.getPrezime();
-        }
-
+        this.ime = account.getImeVlasnikaRacuna();
+        this.prezime = account.getPrezimeVlasnikaRacuna();
         if (account instanceof CheckingAccount ca) {
             tekuciIliDevizni = "tekuci";
             accountOwnershipType = ca.getAccountConcrete().getAccountOwnershipType();

@@ -15,7 +15,15 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(
-        name = "account_table"
+        name = "account_table",
+        indexes = {
+            @Index(name = "idx_account_vlasnik", columnList = "vlasnik"),
+            @Index(name = "idx_account_broj", columnList = "broj_racuna"),
+            @Index(name = "idx_account_company", columnList = "company_id"),
+            @Index(name = "idx_account_ime_vlasnika", columnList = "ime_vlasnika_racuna"),
+            @Index(name = "idx_account_prezime_vlasnika", columnList = "prezime_vlasnika_racuna"),
+            @Index(name = "idx_account_ime_prezime_vlasnika", columnList = "ime_vlasnika_racuna, prezime_vlasnika_racuna")
+        }
 )
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "account_type", discriminatorType = DiscriminatorType.STRING)
@@ -27,6 +35,12 @@ import java.time.LocalDateTime;
 public abstract class Account extends BaseEntity{
     @Column(nullable = false,unique = true,updatable = false)
     private String brojRacuna;
+
+    @Column(nullable = false)
+    private String imeVlasnikaRacuna;
+    @Column(nullable = false)
+    private String prezimeVlasnikaRacuna;
+
     @Column(nullable = false)
     private String nazivRacuna;
     @Column(nullable = false)
@@ -39,7 +53,7 @@ public abstract class Account extends BaseEntity{
     private Long zaposlen;
     //todo mozda LocalDateTime
     @CreationTimestamp
-    @Column(nullable = false,updatable = false)
+    @Column(name = "datum_i_vreme_kreiranja",nullable = false,updatable = false)
     private LocalDateTime datumIVremeKreiranja;
     private LocalDate datumIsteka;
     @ManyToOne(optional = false, fetch = FetchType.LAZY)

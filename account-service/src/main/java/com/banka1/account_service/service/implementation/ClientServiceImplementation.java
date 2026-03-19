@@ -79,7 +79,7 @@ public class ClientServiceImplementation implements ClientService {
             throw new IllegalArgumentException("Ne postoji unet racun");
         if(!account.getVlasnik().equals(((Number) jwt.getClaim(appPropertiesId)).longValue()))
             throw new IllegalArgumentException("Nisi vlasnik racuna");
-        if(editAccountLimitDto.getTipLimita()== EditAccountLimitDto.TipLimita.DNEVNI)
+        if(editAccountLimitDto.getTipLimita() == EditAccountLimitDto.TipLimita.DNEVNI)
             account.setDnevniLimit(editAccountLimitDto.getAccountLimit());
         else
             account.setMesecniLimit(editAccountLimitDto.getAccountLimit());

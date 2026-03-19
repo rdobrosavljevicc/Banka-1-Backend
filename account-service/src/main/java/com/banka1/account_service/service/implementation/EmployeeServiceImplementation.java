@@ -10,6 +10,7 @@ import com.banka1.account_service.dto.request.FirmaDto;
 import com.banka1.account_service.dto.request.FxDto;
 import com.banka1.account_service.dto.request.UpdateCardDto;
 import com.banka1.account_service.dto.response.AccountSearchResponseDto;
+import com.banka1.account_service.dto.response.ClientInfoResponseDto;
 import com.banka1.account_service.dto.response.ClientResponseDto;
 import com.banka1.account_service.repository.AccountRepository;
 import com.banka1.account_service.repository.CompanyRepository;
@@ -100,9 +101,9 @@ public class EmployeeServiceImplementation implements EmployeeService {
         return companyRepository.save(company);
     }
 
-    private Long resolveClientId(Long id, String jmbg) {
-        if (id != null) return id;
-        return clientService.getUser(jmbg).getId();
+    private ClientInfoResponseDto resolveClientId(Long id, String jmbg) {
+        if (id != null) return clientService.getUser(id);
+        return clientService.getUser(jmbg);
     }
 
 
@@ -139,11 +140,15 @@ public class EmployeeServiceImplementation implements EmployeeService {
                                  String broj,
                                  String naziv,
                                  Long vlasnikId,
+                                 String name,
+                                 String surname,
                                  Jwt jwt,
                                  Currency currency,
                                  Company company) {
 
         account.setBrojRacuna(broj);
+        account.setImeVlasnikaRacuna(name);
+        account.setPrezimeVlasnikaRacuna(surname);
         account.setNazivRacuna(naziv);
         account.setVlasnik(vlasnikId);
         account.setZaposlen(((Number) jwt.getClaim(appPropertiesId)).longValue());
@@ -159,10 +164,10 @@ public class EmployeeServiceImplementation implements EmployeeService {
         validateFxDto(fxDto);
         Currency currency = getCurrencyOrThrow(fxDto.getCurrencyCode());
         Company company = createCompanyIfNeeded(fxDto.getFirma());
-        Long id = resolveClientId(fxDto.getIdVlasnika(), fxDto.getJmbg());
+        ClientInfoResponseDto clientInfoResponseDto = resolveClientId(fxDto.getIdVlasnika(), fxDto.getJmbg());
         String broj = generateAccountNumber(String.valueOf(fxDto.getTipRacuna().getVal()));
         Account account = new FxAccount(fxDto.getTipRacuna());
-        populateAccount(account, broj, fxDto.getNazivRacuna(), id, jwt, currency, company);
+        populateAccount(account, broj, fxDto.getNazivRacuna(), clientInfoResponseDto.getId(), clientInfoResponseDto.getName(),clientInfoResponseDto.getLastName(),jwt, currency, company);
         accountRepository.save(account);
         return "Uspesno kreiran fx account";
     }
@@ -174,10 +179,10 @@ public class EmployeeServiceImplementation implements EmployeeService {
         validateCheckingDto(checkingDto);
         Currency currency = getCurrencyOrThrow(CurrencyCode.RSD);
         Company company = createCompanyIfNeeded(checkingDto.getFirma());
-        Long id = resolveClientId(checkingDto.getIdVlasnika(), checkingDto.getJmbg());
+        ClientInfoResponseDto clientInfoResponseDto = resolveClientId(checkingDto.getIdVlasnika(), checkingDto.getJmbg());
         String broj = generateAccountNumber(String.valueOf(checkingDto.getVrstaRacuna().getVal()));
         Account account = new CheckingAccount(checkingDto.getVrstaRacuna());
-        populateAccount(account, broj, checkingDto.getNazivRacuna(), id, jwt, currency, company);
+        populateAccount(account, broj, checkingDto.getNazivRacuna(), clientInfoResponseDto.getId(), clientInfoResponseDto.getName(),clientInfoResponseDto.getLastName(),jwt, currency, company);
         accountRepository.save(account);
         return "Uspesno kreiran checking account";
     }
@@ -185,27 +190,7 @@ public class EmployeeServiceImplementation implements EmployeeService {
     @Transactional
     public Page<AccountSearchResponseDto> searchAllAccounts(Jwt jwt,String ime,String prezime,String accountNumber,int page,int size)
     {
-        Page<ClientResponseDto> clientPage = clientService.searchClients(ime, prezime, page, size);
-        List<ClientResponseDto> clients = clientPage.getContent();
-        if (clients.isEmpty()) {
-            return Page.empty();
-        }
-        Map<Long, ClientResponseDto> clientMap = clients.stream().collect(Collectors.toMap(ClientResponseDto::getId, c -> c));
-        Page<Account> accounts = accountRepository.searchAccounts(
-                accountNumber,
-                clients.stream().map(ClientResponseDto::getId).toList(),
-                PageRequest.of(page, size)
-        );
-        List<AccountSearchResponseDto> dtos = accounts.getContent().stream()
-                .map(acc -> {
-                    ClientResponseDto client = clientMap.get(acc.getVlasnik());
-                    return new AccountSearchResponseDto(acc, client);
-                })
-                .sorted(Comparator.comparing(AccountSearchResponseDto::getPrezime,
-                        Comparator.nullsLast(String::compareTo)))
-                .toList();
-
-        return new PageImpl<>(dtos, accounts.getPageable(), accounts.getTotalElements());
+        return accountRepository.searchAccounts(accountNumber.trim(),ime.trim(),prezime.trim(),PageRequest.of(page,size)).map(AccountSearchResponseDto::new);
     }
 
     //todo rabit mq

@@ -1,6 +1,6 @@
 package com.banka1.account_service.rest_client;
 
-import com.banka1.account_service.dto.response.ClientIdResponseDto;
+import com.banka1.account_service.dto.response.ClientInfoResponseDto;
 import com.banka1.account_service.dto.response.ClientResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;
@@ -15,30 +15,17 @@ public class ClientService {
 
     private final RestClient clientServiceClient;
 
-    public ClientIdResponseDto getUser(String jmbg) {
+    public ClientInfoResponseDto getUser(String jmbg) {
         return clientServiceClient.get()
                 .uri("/customers/jmbg/{jmbg}", jmbg)
                 .retrieve()
-                .body(ClientIdResponseDto.class);
+                .body(ClientInfoResponseDto.class);
     }
-    public Page<ClientResponseDto> searchClients(
-            String ime,
-            String prezime,
-            int page,
-            int size
-    ) {
-        String uri = UriComponentsBuilder.fromPath("/clients")
-                .queryParamIfPresent("ime", java.util.Optional.ofNullable(ime))
-                .queryParamIfPresent("prezime", java.util.Optional.ofNullable(prezime))
-                .queryParam("page", page)
-                .queryParam("size", size)
-                .build()
-                .toUriString();
-
+    public ClientInfoResponseDto getUser(Long id) {
         return clientServiceClient.get()
-                .uri(uri)
+                .uri("/customers/{id}", id)
                 .retrieve()
-                .body(new ParameterizedTypeReference<>() {
-                });
+                .body(ClientInfoResponseDto.class);
     }
+
 }

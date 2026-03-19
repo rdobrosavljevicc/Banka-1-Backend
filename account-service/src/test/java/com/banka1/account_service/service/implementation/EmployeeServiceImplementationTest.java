@@ -13,7 +13,7 @@ import com.banka1.account_service.domain.enums.Status;
 import com.banka1.account_service.dto.request.CheckingDto;
 import com.banka1.account_service.dto.request.FirmaDto;
 import com.banka1.account_service.dto.request.FxDto;
-import com.banka1.account_service.dto.response.ClientIdResponseDto;
+import com.banka1.account_service.dto.response.ClientInfoResponseDto;
 import com.banka1.account_service.dto.response.ClientResponseDto;
 import com.banka1.account_service.dto.response.Pol;
 import com.banka1.account_service.repository.AccountRepository;
@@ -26,7 +26,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
@@ -91,7 +90,7 @@ class EmployeeServiceImplementationTest {
         when(currencyRepository.findByOznaka(CurrencyCode.EUR)).thenReturn(Optional.of(eur));
         when(sifraDelatnostiRepository.findByOznaka("6201")).thenReturn(Optional.of(sifraDelatnosti));
         when(companyRepository.save(any(Company.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(clientService.getUser("0101990712345")).thenReturn(new ClientIdResponseDto(55L));
+        when(clientService.getUser("0101990712345")).thenReturn(new ClientInfoResponseDto(55L));
         when(accountRepository.existsByBrojRacuna(anyString())).thenReturn(false);
 
         String result = service.createFxAccount(jwtWithEmployeeId(900L), fxDto);

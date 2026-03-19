@@ -27,7 +27,7 @@ repositories {
 }
 
 dependencies {
-//	implementation("com.library:company-observability-starter:0.0.1-SNAPSHOT")
+	implementation("com.library:company-observability-starter:0.0.1-SNAPSHOT")
 	implementation("com.banka1:security-lib:0.0.1-SNAPSHOT")
 	implementation("com.fasterxml.jackson.core:jackson-core:2.21.1")
 	implementation("com.fasterxml.jackson.core:jackson-databind:2.21.1")
@@ -35,7 +35,7 @@ dependencies {
 	implementation("org.bouncycastle:bcprov-jdk18on:1.78.1")
 	implementation("me.paulschwarz:springboot3-dotenv:5.0.1")
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
-//	implementation("org.springframework.boot:spring-boot-starter-amqp")
+	implementation("org.springframework.boot:spring-boot-starter-amqp")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-liquibase")
 	implementation("org.springframework.boot:spring-boot-starter-security")
@@ -46,7 +46,7 @@ dependencies {
 	runtimeOnly("org.postgresql:postgresql")
 	annotationProcessor("org.projectlombok:lombok")
 	testImplementation("org.springframework.boot:spring-boot-starter-actuator-test")
-//	testImplementation("org.springframework.boot:spring-boot-starter-amqp-test")
+	testImplementation("org.springframework.boot:spring-boot-starter-amqp-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-liquibase-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-security-test")
@@ -73,8 +73,10 @@ jacoco {
 	toolVersion = "0.8.12"
 }
 
+val openApiPort =  System.getenv("ACCOUNT_DOCKER_PORT") 	?: System.getenv("ACCOUNT_SERVER_PORT")
+
 openApi {
-	apiDocsUrl.set("http://localhost:8081/v3/api-docs.yaml")
+	apiDocsUrl.set("http://localhost:$openApiPort/v3/api-docs.yaml")
 	outputDir.set(file("docs"))
 	outputFileName.set("openapi.yml")
 	waitTimeInSeconds.set(30)
