@@ -85,7 +85,7 @@ public class EmployeeServiceImplementation implements EmployeeService {
     private Company createCompanyIfNeeded(FirmaDto firmaDto) {
         if (firmaDto == null) return null;
         SifraDelatnosti sifra = sifraDelatnostiRepository
-                .findByOznaka(firmaDto.getSifraDelatnosti())
+                .findBySifra(firmaDto.getSifraDelatnosti())
                 .orElse(null);
         if (sifra == null)
             throw new IllegalArgumentException("Nije uneta sifra delatnosti");

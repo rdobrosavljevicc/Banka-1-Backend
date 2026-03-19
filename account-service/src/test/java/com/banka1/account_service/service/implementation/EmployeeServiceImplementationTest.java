@@ -14,8 +14,6 @@ import com.banka1.account_service.dto.request.CheckingDto;
 import com.banka1.account_service.dto.request.FirmaDto;
 import com.banka1.account_service.dto.request.FxDto;
 import com.banka1.account_service.dto.response.ClientInfoResponseDto;
-import com.banka1.account_service.dto.response.ClientResponseDto;
-import com.banka1.account_service.dto.response.Pol;
 import com.banka1.account_service.repository.AccountRepository;
 import com.banka1.account_service.repository.CompanyRepository;
 import com.banka1.account_service.repository.CurrencyRepository;
@@ -41,7 +39,6 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -82,15 +79,15 @@ class EmployeeServiceImplementationTest {
 
     @Test
     void createFxAccountSavesAccountAndResolvesOwnerFromJmbg() {
-        Currency eur = new Currency("Euro", CurrencyCode.EUR, 'E', Set.of("RS"), "opis", Status.ACTIVE);
+        Currency eur = new Currency("Euro", CurrencyCode.EUR, "E", Set.of("RS"), "opis", Status.ACTIVE);
         FirmaDto firmaDto = new FirmaDto("Firma", "123", "456", "6201", "Adresa", 77L);
         FxDto fxDto = new FxDto("Devizni", null, "0101990712345", CurrencyCode.EUR, AccountOwnershipType.BUSINESS, firmaDto);
         SifraDelatnosti sifraDelatnosti = org.mockito.Mockito.mock(SifraDelatnosti.class);
 
         when(currencyRepository.findByOznaka(CurrencyCode.EUR)).thenReturn(Optional.of(eur));
-        when(sifraDelatnostiRepository.findByOznaka("6201")).thenReturn(Optional.of(sifraDelatnosti));
+        when(sifraDelatnostiRepository.findBySifra("6201")).thenReturn(Optional.of(sifraDelatnosti));
         when(companyRepository.save(any(Company.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(clientService.getUser("0101990712345")).thenReturn(new ClientInfoResponseDto(55L));
+        when(clientService.getUser("0101990712345")).thenReturn(new ClientInfoResponseDto(55L, "Pera", "Peric"));
         when(accountRepository.existsByBrojRacuna(anyString())).thenReturn(false);
 
         String result = service.createFxAccount(jwtWithEmployeeId(900L), fxDto);
@@ -101,6 +98,8 @@ class EmployeeServiceImplementationTest {
         assertThat(savedAccount).isInstanceOf(FxAccount.class);
         assertThat(savedAccount.getVlasnik()).isEqualTo(55L);
         assertThat(savedAccount.getZaposlen()).isEqualTo(900L);
+        assertThat(savedAccount.getImeVlasnikaRacuna()).isEqualTo("Pera");
+        assertThat(savedAccount.getPrezimeVlasnikaRacuna()).isEqualTo("Peric");
         assertThat(savedAccount.getNazivRacuna()).isEqualTo("Devizni");
         assertThat(savedAccount.getCurrency()).isSameAs(eur);
         assertThat(savedAccount.getCompany()).isNotNull();
@@ -109,10 +108,11 @@ class EmployeeServiceImplementationTest {
 
     @Test
     void createCheckingAccountSavesRsdPersonalAccount() {
-        Currency rsd = new Currency("Dinar", CurrencyCode.RSD, 'R', Set.of("RS"), "opis", Status.ACTIVE);
+        Currency rsd = new Currency("Dinar", CurrencyCode.RSD, "R", Set.of("RS"), "opis", Status.ACTIVE);
         CheckingDto checkingDto = new CheckingDto("Tekuci", 42L, null, AccountConcrete.STANDARDNI, null);
 
         when(currencyRepository.findByOznaka(CurrencyCode.RSD)).thenReturn(Optional.of(rsd));
+        when(clientService.getUser(42L)).thenReturn(new ClientInfoResponseDto(42L, "Ana", "Anic"));
         when(accountRepository.existsByBrojRacuna(anyString())).thenReturn(false);
 
         String result = service.createCheckingAccount(jwtWithEmployeeId(901L), checkingDto);
@@ -123,6 +123,8 @@ class EmployeeServiceImplementationTest {
         assertThat(savedAccount).isInstanceOf(CheckingAccount.class);
         assertThat(savedAccount.getVlasnik()).isEqualTo(42L);
         assertThat(savedAccount.getZaposlen()).isEqualTo(901L);
+        assertThat(savedAccount.getImeVlasnikaRacuna()).isEqualTo("Ana");
+        assertThat(savedAccount.getPrezimeVlasnikaRacuna()).isEqualTo("Anic");
         assertThat(savedAccount.getCurrency()).isSameAs(rsd);
         assertThat(savedAccount.getCompany()).isNull();
     }
@@ -140,29 +142,27 @@ class EmployeeServiceImplementationTest {
     }
 
     @Test
-    void searchAllAccountsReturnsDtosSortedByLastName() {
-        ClientResponseDto zika = new ClientResponseDto(1L, "Zika", "Zoric", 0L, Pol.M, "zika@test.com", "1", "A");
-        ClientResponseDto ana = new ClientResponseDto(2L, "Ana", "Andric", 0L, Pol.Z, "ana@test.com", "2", "B");
+    void searchAllAccountsTrimsInputsAndMapsAccountsToDtos() {
         CheckingAccount checkingAccount = new CheckingAccount(AccountConcrete.STANDARDNI);
         checkingAccount.setBrojRacuna("ACC-2");
-        checkingAccount.setVlasnik(1L);
+        checkingAccount.setImeVlasnikaRacuna("Zika");
+        checkingAccount.setPrezimeVlasnikaRacuna("Zoric");
         FxAccount fxAccount = new FxAccount(AccountOwnershipType.PERSONAL);
         fxAccount.setBrojRacuna("ACC-1");
-        fxAccount.setVlasnik(2L);
+        fxAccount.setImeVlasnikaRacuna("Ana");
+        fxAccount.setPrezimeVlasnikaRacuna("Andric");
 
-        when(clientService.searchClients("Ime", "Prezime", 0, 10))
-                .thenReturn(new PageImpl<>(List.of(zika, ana), PageRequest.of(0, 10), 2));
-        when(accountRepository.searchAccounts(eq("ACC"), anyList(), eq(PageRequest.of(0, 10))))
+        when(accountRepository.searchAccounts(eq("ACC"), eq("Ime"), eq("Prezime"), eq(PageRequest.of(0, 10))))
                 .thenReturn(new PageImpl<>(List.of(checkingAccount, fxAccount), PageRequest.of(0, 10), 2));
 
-        Page<?> result = service.searchAllAccounts(jwtWithEmployeeId(901L), "Ime", "Prezime", "ACC", 0, 10);
+        Page<?> result = service.searchAllAccounts(jwtWithEmployeeId(901L), " Ime ", " Prezime ", " ACC ", 0, 10);
 
         assertThat(result.getContent())
                 .extracting("prezime")
-                .containsExactly("Andric", "Zoric");
+                .containsExactly("Zoric", "Andric");
         assertThat(result.getContent())
                 .extracting("tekuciIliDevizni")
-                .containsExactly("devizni", "tekuci");
+                .containsExactly("tekuci", "devizni");
     }
 
     private Jwt jwtWithEmployeeId(Long employeeId) {

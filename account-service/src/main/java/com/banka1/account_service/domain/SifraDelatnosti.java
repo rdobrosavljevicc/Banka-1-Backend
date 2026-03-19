@@ -17,14 +17,14 @@ import java.util.Set;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SifraDelatnosti extends BaseEntity{
-    @Column(nullable = false,updatable = false)
-    private String oznaka;
+    @Column(nullable = false,updatable = false,unique = true)
+    private String sifra;
     @ElementCollection
     @CollectionTable(
             name = "sifra_delatnosti_sektori",
             joinColumns = @JoinColumn(name = "sifra_delatnosti_id")
     )
-    @Column(name = "country", nullable = false)
+    @Column(name = "sektor", nullable = false)
     private Set<String> sektori = new HashSet<>();
     @Column(nullable = false,updatable = false)
     private String grana;

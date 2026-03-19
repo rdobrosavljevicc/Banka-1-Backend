@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface SifraDelatnostiRepository extends JpaRepository<SifraDelatnosti,Long> {
-    Optional<SifraDelatnosti> findByOznaka(String oznaka);
+    Optional<SifraDelatnosti> findBySifra(String sifra);
 }

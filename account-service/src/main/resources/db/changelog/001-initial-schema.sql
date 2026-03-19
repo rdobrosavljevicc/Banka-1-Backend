@@ -4,13 +4,13 @@
 CREATE TABLE sifra_delatnosti_table (
                                         id BIGSERIAL PRIMARY KEY,
                                         version BIGINT,
-                                        oznaka VARCHAR(50) NOT NULL,
+                                        sifra VARCHAR(50) NOT NULL UNIQUE,
                                         grana VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE sifra_delatnosti_sektori (
                                           sifra_delatnosti_id BIGINT NOT NULL,
-                                          country VARCHAR(255) NOT NULL,
+                                          sektor VARCHAR(255) NOT NULL,
                                           CONSTRAINT fk_sifra_delatnosti_sektori
                                               FOREIGN KEY (sifra_delatnosti_id)
                                                   REFERENCES sifra_delatnosti_table(id)
@@ -24,7 +24,7 @@ CREATE TABLE currency_table (
                                 version BIGINT,
                                 naziv VARCHAR(255) NOT NULL,
                                 oznaka VARCHAR(20) NOT NULL UNIQUE,
-                                simbol CHAR(1) NOT NULL UNIQUE,
+                                simbol VARCHAR(5) NOT NULL UNIQUE,
                                 opis VARCHAR(500) NOT NULL,
                                 status VARCHAR(20) NOT NULL
 );

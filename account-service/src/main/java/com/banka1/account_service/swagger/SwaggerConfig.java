@@ -18,7 +18,7 @@ public class SwaggerConfig {
     /**
      * Opis API-ja koji se prikazuje u Swagger UI.
      */
-    private static final String APP_DESCRIPTION = "API for accountst";
+    private static final String APP_DESCRIPTION = "API for accounts";
 
     /**
      * Verzija API-ja.

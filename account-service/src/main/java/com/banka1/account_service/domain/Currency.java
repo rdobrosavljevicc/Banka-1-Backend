@@ -24,7 +24,7 @@ public class Currency extends BaseEntity{
     private CurrencyCode oznaka;
     //ne mora nullable=false
     @Column(nullable = false,updatable = false,unique = true)
-    private char simbol;
+    private String simbol;
     @ElementCollection
     @CollectionTable(name = "currency_countries", joinColumns = @JoinColumn(name = "currency_id"))
     @Column(name = "country", nullable = false)
@@ -36,7 +36,7 @@ public class Currency extends BaseEntity{
     @Column(nullable = false,updatable = false)
     private Status status;
 
-    public Currency(String naziv, CurrencyCode oznaka, char simbol, Set<String> countries, String opis, Status status) {
+    public Currency(String naziv, CurrencyCode oznaka, String simbol, Set<String> countries, String opis, Status status) {
         this.naziv = naziv;
         this.oznaka = oznaka;
         this.simbol = simbol;

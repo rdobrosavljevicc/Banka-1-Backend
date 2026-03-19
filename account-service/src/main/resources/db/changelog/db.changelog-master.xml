@@ -11,11 +11,10 @@
                 splitStatements="false"/>
     </changeSet>
 
-    <!--
     <changeSet id="002-seed-data" author="ognjen">
         <sqlFile
                 path="db/changelog/002-seed-data.sql"
                 splitStatements="true"/>
     </changeSet>
-    -->
+
 </databaseChangeLog>
