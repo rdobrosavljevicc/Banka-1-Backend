@@ -44,16 +44,17 @@ Kreirati `.env` fajl u `setup/` folderu (primer u `setup/.env.example`) ili loka
 |----------------------------|----------------------------------------------|------------------------------|
 | `CARD_SERVER_PORT`         | Port na kome servis sluša                    | `8087`                       |
 | `CARD_DB_HOST`             | Hostname baze podataka                       | `postgres_card`              |
-| `CARD_DB_PORT`             | Interni port baze (unutar Docker mreže)      | `5432`                       |
+| `CARD_DB_PORT`             | Port baze na koji se app konektuje           | `5439`                       |
 | `CARD_DB_EX_PORT`          | Eksterni Docker port baze                    | `5439`                       |
+| `CARD_DB_INT_PORT`         | Interni port baze (unutar Docker mreže)      | `5432`                       |
 | `CARD_DB_NAME`             | Naziv baze podataka                          | `card_db`                    |
 | `CARD_DB_USER`             | Korisničko ime baze                          | `postgres`                   |
 | `CARD_DB_PASSWORD`         | Lozinka baze                                 | `postgres`                   |
 | `JWT_SECRET`               | HMAC-SHA256 secret (isti kao ostali servisi) | `my_secret_key`              |
 | `RABBITMQ_HOST`            | Hostname RabbitMQ brokera                    | `rabbitmq`                   |
 | `RABBITMQ_PORT`            | Port RabbitMQ brokera                        | `5672`                       |
-| `RABBITMQ_USERNAME`        | Korisničko ime RabbitMQ                      | `guest`                      |
-| `RABBITMQ_PASSWORD`        | Lozinka RabbitMQ                             | `guest`                      |
+| `RABBITMQ_USERNAME`        | Korisničko ime RabbitMQ                      | `rabbit`                     |
+| `RABBITMQ_PASSWORD`        | Lozinka RabbitMQ                             | `rabbit`                     |
 | `NOTIFICATION_QUEUE`       | Naziv RabbitMQ queue-a za notifikacije       | `notification-service-queue` |
 | `NOTIFICATION_EXCHANGE`    | Naziv RabbitMQ exchange-a                    | `employee.events`            |
 | `NOTIFICATION_ROUTING_KEY` | Routing key za email notifikacije            | `employee.#`                 |
