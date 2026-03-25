@@ -11,6 +11,8 @@ import com.banka1.account_service.dto.request.FxDto;
 import com.banka1.account_service.dto.request.UpdateCardDto;
 import com.banka1.account_service.dto.response.AccountSearchResponseDto;
 import com.banka1.account_service.dto.response.ClientInfoResponseDto;
+import com.banka1.account_service.rabbitMQ.CardEventDto;
+import com.banka1.account_service.rabbitMQ.CardEventType;
 import com.banka1.account_service.rabbitMQ.EmailDto;
 import com.banka1.account_service.rabbitMQ.EmailType;
 import com.banka1.account_service.rabbitMQ.RabbitClient;
@@ -30,6 +32,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -171,6 +174,9 @@ public class EmployeeServiceImplementation implements EmployeeService {
         account.setCompany(company);
         account.setStanje(balance);
         account.setRaspolozivoStanje(balance);
+        account.setDnevniLimit(new BigDecimal("250000.00"));
+        account.setMesecniLimit(new BigDecimal("1000000.00"));
+        account.setDatumIsteka(LocalDate.now().plusYears(5));
     }
 
     //todo rabit mq
@@ -188,8 +194,10 @@ public class EmployeeServiceImplementation implements EmployeeService {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                //todo gresku ostavljam namerno da me upozori da se vratim na ovo, mora i da se posalje AccountCreated event za card create
                 rabbitClient.sendEmailNotification(new EmailDto(clientInfoResponseDto.getUsername(),clientInfoResponseDto.getEmail(), EmailType.ACCOUNT_CREATED));
+                if (Boolean.TRUE.equals(fxDto.getCreateCard())) {
+                    rabbitClient.sendCardEvent(new CardEventDto(clientInfoResponseDto.getId(), account.getBrojRacuna(), CardEventType.CARD_CREATE));
+                }
             }
         });
         return "Uspesno kreiran fx account";
@@ -210,9 +218,10 @@ public class EmployeeServiceImplementation implements EmployeeService {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                //todo gresku ostavljam namerno da me upozori da se vratim na ovo, mora i da se posalje AccountCreated event za card create
                 rabbitClient.sendEmailNotification(new EmailDto(clientInfoResponseDto.getUsername(),clientInfoResponseDto.getEmail(), EmailType.ACCOUNT_CREATED));
-
+                if (Boolean.TRUE.equals(checkingDto.getCreateCard())) {
+                    rabbitClient.sendCardEvent(new CardEventDto(clientInfoResponseDto.getId(), account.getBrojRacuna(), CardEventType.CARD_CREATE));
+                }
             }
         });
         return "Uspesno kreiran checking account";

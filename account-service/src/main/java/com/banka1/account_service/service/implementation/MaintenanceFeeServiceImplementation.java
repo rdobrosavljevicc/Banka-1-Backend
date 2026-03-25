@@ -33,13 +33,17 @@ public class MaintenanceFeeServiceImplementation implements MaintenanceFeeServic
         Currency currency=currencyRepository.findByOznaka(CurrencyCode.RSD).orElse(null);
         if(currency==null)
             throw new IllegalStateException("Ne postoji RSD currency");
-         Account bankAccount = accountRepository.findByIdAndCurrency((long) -1,currency).orElseThrow(() -> new RuntimeException("Bank RSD account not found"));
+         Account bankAccount = accountRepository.findByVlasnikAndCurrency(-1L, currency).orElseThrow(() -> new RuntimeException("Bank RSD account not found"));
         BigDecimal total = BigDecimal.ZERO;
 
         for (CheckingAccount acc : accounts) {
             BigDecimal fee = acc.getOdrzavanjeRacuna();
             if (fee == null || fee.signum() <= 0)
                 continue;
+            if (acc.getRaspolozivoStanje().compareTo(fee) < 0) {
+                log.warn("Insufficient funds for fee | acc={} balance={} fee={}", acc.getBrojRacuna(), acc.getRaspolozivoStanje(), fee);
+                continue;
+            }
             acc.setStanje(acc.getStanje().subtract(fee));
             acc.setRaspolozivoStanje(acc.getRaspolozivoStanje().subtract(fee));
             transactionRecordRepository.save(new TransactionRecord(acc.getBrojRacuna(),bankAccount.getBrojRacuna(),fee));

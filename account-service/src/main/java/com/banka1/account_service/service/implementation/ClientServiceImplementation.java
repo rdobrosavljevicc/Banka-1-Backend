@@ -7,6 +7,9 @@ import com.banka1.account_service.dto.request.EditAccountLimitDto;
 import com.banka1.account_service.dto.request.EditAccountNameDto;
 import com.banka1.account_service.dto.request.EditStatus;
 import com.banka1.account_service.dto.request.ValidateRequest;
+import com.banka1.account_service.rabbitMQ.CardEventDto;
+import com.banka1.account_service.rabbitMQ.CardEventType;
+import com.banka1.account_service.rest_client.CardServiceRestClient;
 import com.banka1.account_service.dto.response.*;
 import com.banka1.account_service.exception.BusinessException;
 import com.banka1.account_service.exception.ErrorCode;
@@ -28,6 +31,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class ClientServiceImplementation implements ClientService {
@@ -38,6 +43,7 @@ public class ClientServiceImplementation implements ClientService {
     private final VerificationService verificationService;
     private final RabbitClient rabbitClient;
     private final RestClientService restClientService;
+    private final CardServiceRestClient cardServiceRestClient;
 
 
 //    @Override
@@ -122,29 +128,17 @@ public class ClientServiceImplementation implements ClientService {
     private String editLimit(Jwt jwt, EditAccountLimitDto editAccountLimitDto, Account account) {
         validation(account,jwt);
 
-        if(editAccountLimitDto.getTipLimita() == EditAccountLimitDto.TipLimita.DNEVNI) {
-            if(editAccountLimitDto.getAccountLimit().compareTo(account.getMesecniLimit())>0)
-                throw new IllegalArgumentException("Dnevni limit mora biti manji ili jednak od mesecnog");
-        }
-        else
-        {
-            if(editAccountLimitDto.getAccountLimit().compareTo(account.getDnevniLimit())<0)
-                throw new IllegalArgumentException("Mesecni limit mora biti veci ili jednak od dnevnog");
-        }
+        if(editAccountLimitDto.getDailyLimit().compareTo(editAccountLimitDto.getMonthlyLimit()) > 0)
+            throw new IllegalArgumentException("Dnevni limit mora biti manji ili jednak od mesecnog");
 
         ValidateResponse validateResponse=verificationService.validate(new ValidateRequest(editAccountLimitDto.getVerificationSessionId(),editAccountLimitDto.getVerificationCode()));
         if(validateResponse==null || validateResponse.getStatus()!= VerificationStatus.VERIFIED)
             throw new BusinessException(ErrorCode.VERIFICATION_FAILED,ErrorCode.VERIFICATION_FAILED.getTitle());
-        if(editAccountLimitDto.getTipLimita() == EditAccountLimitDto.TipLimita.DNEVNI) {
-            account.setDnevniLimit(editAccountLimitDto.getAccountLimit());
-        }
-        else
-        {
-            account.setMesecniLimit(editAccountLimitDto.getAccountLimit());
-        }
 
+        account.setDnevniLimit(editAccountLimitDto.getDailyLimit());
+        account.setMesecniLimit(editAccountLimitDto.getMonthlyLimit());
 
-        return "Uspesno setovan limit";
+        return "Uspesno setovani limiti";
     }
 
     @Transactional
@@ -165,15 +159,21 @@ public class ClientServiceImplementation implements ClientService {
 
     @Override
     public Page<CardResponseDto> findAllCards(Jwt jwt, Long id, int page, int size) {
-        return null;
+        Account account = accountRepository.findById(id).orElse(null);
+        validation(account, jwt);
+        List<CardResponseDto> cards = cardServiceRestClient.getCardsForAccount(account.getBrojRacuna());
+        int start = page * size;
+        int end = Math.min(start + size, cards.size());
+        List<CardResponseDto> pageContent = start >= cards.size() ? List.of() : cards.subList(start, end);
+        return new org.springframework.data.domain.PageImpl<>(pageContent, PageRequest.of(page, size), cards.size());
     }
 
-    //todo dosta gluposti u vezi ovoga sto se tice Card i Loan servica
     @Override
     @Transactional
     public String editStatus(Jwt jwt, String accountNumber, EditStatus editStatus) {
         Account account=accountRepository.findByBrojRacuna(accountNumber).orElse(null);
-        validation(account,jwt);
+        if(account==null)
+            throw new IllegalArgumentException("Ne postoji racun: " + accountNumber);
         account.setStatus(editStatus.getStatus());
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
@@ -181,7 +181,9 @@ public class ClientServiceImplementation implements ClientService {
                 if(account.getUsername()==null || account.getEmail()==null)
                     throw new RuntimeException("Ne sme null");
                 rabbitClient.sendEmailNotification(new EmailDto(account.getUsername(),account.getEmail(), EmailType.ACCOUNT_DEACTIVATED));
-
+                if (editStatus.getStatus() == Status.INACTIVE) {
+                    rabbitClient.sendCardEvent(new CardEventDto(account.getVlasnik(), account.getBrojRacuna(), CardEventType.CARD_DEACTIVATE));
+                }
             }
         });
         return "Uspesno editovan status";

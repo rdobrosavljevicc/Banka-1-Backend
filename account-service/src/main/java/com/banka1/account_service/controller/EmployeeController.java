@@ -2,6 +2,7 @@ package com.banka1.account_service.controller;
 
 import com.banka1.account_service.dto.request.*;
 import com.banka1.account_service.dto.response.*;
+import com.banka1.account_service.service.ClientService;
 import com.banka1.account_service.service.EmployeeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 public class EmployeeController {
 
     private EmployeeService employeeService;
+    private ClientService clientService;
 
     @Operation(summary = "Create checking account")
     @ApiResponses({
@@ -79,6 +81,23 @@ public class EmployeeController {
     }
 
 
+
+    @Operation(summary = "Edit account status")
+    @ApiResponses({
+        @ApiResponse(responseCode = "400", description = "Invalid request body",
+            content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))),
+        @ApiResponse(responseCode = "401", description = "Unauthorized",
+            content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))),
+        @ApiResponse(responseCode = "403", description = "Forbidden",
+            content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))),
+        @ApiResponse(responseCode = "404", description = "Account not found",
+            content = @Content(schema = @Schema(implementation = ErrorResponseDto.class)))
+    })
+    @PreAuthorize("hasRole('BASIC')")
+    @PutMapping("/accounts/{accountNumber}/status")
+    public ResponseEntity<String> editStatus(@AuthenticationPrincipal Jwt jwt, @PathVariable String accountNumber, @RequestBody @Valid EditStatus editStatus) {
+        return new ResponseEntity<>(clientService.editStatus(jwt, accountNumber, editStatus), HttpStatus.OK);
+    }
 
 //    @Operation(summary = "Update card status")
 //    @ApiResponses({

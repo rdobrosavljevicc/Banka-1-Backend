@@ -12,10 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 
 import java.util.List;
 
@@ -38,6 +36,11 @@ public class CurrencyController {
     }
     @GetMapping()
     public ResponseEntity<Currency> findAllByCode(@AuthenticationPrincipal Jwt jwt,@RequestParam String code){
+        return new ResponseEntity<>(currencyService.findByCode(CurrencyCode.valueOf(code.toUpperCase())), HttpStatus.OK);
+    }
+
+    @GetMapping("/{code}")
+    public ResponseEntity<Currency> findByCode(@AuthenticationPrincipal Jwt jwt, @PathVariable String code) {
         return new ResponseEntity<>(currencyService.findByCode(CurrencyCode.valueOf(code.toUpperCase())), HttpStatus.OK);
     }
 

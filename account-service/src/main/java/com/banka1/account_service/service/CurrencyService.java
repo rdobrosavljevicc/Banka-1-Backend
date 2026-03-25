@@ -6,11 +6,33 @@ import org.springframework.data.domain.Page;
 
 import java.util.List;
 
+/**
+ * Servis za pristup podacima o valutama koje banka podrzava.
+ */
 public interface CurrencyService {
 
-    List<Currency>findAll();
-    Page<Currency> findAllPage(int page,int size);
+    /**
+     * Vraca sve valute bez paginacije.
+     *
+     * @return lista svih valuta
+     */
+    List<Currency> findAll();
 
+    /**
+     * Vraca paginiranu listu valuta.
+     *
+     * @param page broj stranice (0-indeksiran)
+     * @param size velicina stranice
+     * @return stranica valuta
+     */
+    Page<Currency> findAllPage(int page, int size);
+
+    /**
+     * Pronalazi valutu po kodu (npr. RSD, EUR, USD).
+     *
+     * @param code kod valute
+     * @return entitet valute
+     * @throws IllegalArgumentException ako valuta sa datim kodom ne postoji
+     */
     Currency findByCode(CurrencyCode code);
-
 }

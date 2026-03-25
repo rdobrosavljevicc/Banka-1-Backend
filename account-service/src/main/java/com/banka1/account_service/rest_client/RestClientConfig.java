@@ -24,4 +24,15 @@ public class RestClientConfig {
                 .requestInterceptor(new JwtAuthInterceptor(jwtService))
                 .build();
     }
+
+    @Bean
+    public RestClient cardRestClient(
+            @Value("${services.card.url}") String baseUrl,
+            JWTService jwtService
+    ) {
+        return RestClient.builder()
+                .baseUrl(baseUrl)
+                .requestInterceptor(new JwtAuthInterceptor(jwtService))
+                .build();
+    }
 }

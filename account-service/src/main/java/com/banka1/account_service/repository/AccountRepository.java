@@ -28,6 +28,8 @@ public interface AccountRepository extends JpaRepository<Account,Long> {
 
     Optional<Account> findByIdAndCurrency(Long id, Currency currency);
 
+    Optional<Account> findByVlasnikAndCurrency(Long vlasnik, Currency currency);
+
     @Query("""
         SELECT a
         FROM CheckingAccount a

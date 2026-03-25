@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/client")
 @AllArgsConstructor
-@PreAuthorize("hasRole('CLIENT_BASIC')")
+@PreAuthorize("hasAnyRole('CLIENT_BASIC', 'AGENT')")
 //todo dodati autorizaciju na endpointe
 public class ClientController {
     private ClientService clientService;
@@ -127,21 +127,15 @@ public class ClientController {
         @ApiResponse(responseCode = "404", description = "Account not found",
             content = @Content(schema = @Schema(implementation = ErrorResponseDto.class)))
     })
-    @PatchMapping("/accounts/{id}/limit")
+    @PatchMapping("/accounts/{id}/limits")
     public ResponseEntity<String> editAccountLimitId(@AuthenticationPrincipal Jwt jwt,@PathVariable Long id,@RequestBody @Valid EditAccountLimitDto editAccountLimitDto)
     {
         return new ResponseEntity<>(clientService.editAccountLimit(jwt,id,editAccountLimitDto), HttpStatus.OK);
     }
-    @PutMapping("/api/accounts/{accountNumber}/limit")
+    @PutMapping("/api/accounts/{accountNumber}/limits")
     public ResponseEntity<String> editAccountLimit(@AuthenticationPrincipal Jwt jwt,@PathVariable String accountNumber,@RequestBody @Valid EditAccountLimitDto editAccountLimitDto)
     {
         return new ResponseEntity<>(clientService.editAccountLimit(jwt,accountNumber,editAccountLimitDto), HttpStatus.OK);
-    }
-
-    @PutMapping("/api/accounts/{accountNumber}/status")
-    public ResponseEntity<String> editStatus(@AuthenticationPrincipal Jwt jwt,@PathVariable String accountNumber,@RequestBody @Valid EditStatus editStatus)
-    {
-        return new ResponseEntity<>(clientService.editStatus(jwt,accountNumber,editStatus), HttpStatus.OK);
     }
 
     @Operation(summary = "Get account details")
@@ -165,20 +159,20 @@ public class ClientController {
         return new ResponseEntity<>(clientService.getDetails(jwt,accountNumber), HttpStatus.OK);
     }
 
-//    @Operation(summary = "Get account cards")
-//    @ApiResponses({
-//        @ApiResponse(responseCode = "401", description = "Unauthorized",
-//            content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))),
-//        @ApiResponse(responseCode = "403", description = "Forbidden",
-//            content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))),
-//        @ApiResponse(responseCode = "404", description = "Account not found",
-//            content = @Content(schema = @Schema(implementation = ErrorResponseDto.class)))
-//    })
-//    @GetMapping("/accounts/{id}/cards")
-//    public ResponseEntity<Page<CardResponseDto>> findAllCards(@AuthenticationPrincipal Jwt jwt,
-//                                                              @PathVariable Long id,
-//                                                              @RequestParam(defaultValue = "0") @Min(value = 0) int page,
-//                                                              @RequestParam(defaultValue = "10") @Min(value = 1) @Max(value = 100) int size) {
-//        return new ResponseEntity<>(clientService.findAllCards(jwt,id,page,size), HttpStatus.OK);
-//    }
+    @Operation(summary = "Get account cards")
+    @ApiResponses({
+        @ApiResponse(responseCode = "401", description = "Unauthorized",
+            content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))),
+        @ApiResponse(responseCode = "403", description = "Forbidden",
+            content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))),
+        @ApiResponse(responseCode = "404", description = "Account not found",
+            content = @Content(schema = @Schema(implementation = ErrorResponseDto.class)))
+    })
+    @GetMapping("/accounts/{id}/cards")
+    public ResponseEntity<Page<CardResponseDto>> findAllCards(@AuthenticationPrincipal Jwt jwt,
+                                                              @PathVariable Long id,
+                                                              @RequestParam(defaultValue = "0") @Min(value = 0) int page,
+                                                              @RequestParam(defaultValue = "10") @Min(value = 1) @Max(value = 100) int size) {
+        return new ResponseEntity<>(clientService.findAllCards(jwt,id,page,size), HttpStatus.OK);
+    }
 }

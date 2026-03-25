@@ -38,7 +38,7 @@ public class AccountServiceImplementation implements AccountService {
     }
     private Account validateBank(Account to)
     {
-        Account account=accountRepository.findByIdAndCurrency((long) -1,to.getCurrency()).orElse(null);
+        Account account=accountRepository.findByVlasnikAndCurrency(-1L,to.getCurrency()).orElse(null);
         if(account==null)
             throw new IllegalStateException("Greska u sistemu fali banka");
         if(account.getStatus()== Status.INACTIVE)

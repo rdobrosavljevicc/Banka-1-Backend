@@ -19,7 +19,7 @@ public class FirmaDto {
     @Pattern(regexp = "^\\d{8}$", message = "Maticni broj mora imati tacno 8 cifara")
     private String maticniBroj;
     @NotBlank(message = "Unesi poreski broj")
-    @Pattern(regexp = "^\\d{8}$", message = "Poreski broj mora imati tacno 9 cifara")
+    @Pattern(regexp = "^\\d{9}$", message = "Poreski broj mora imati tacno 9 cifara")
     private String poreskiBroj;
     @NotBlank(message = "Unesi sifru delatnosti")
     private String sifraDelatnosti;
