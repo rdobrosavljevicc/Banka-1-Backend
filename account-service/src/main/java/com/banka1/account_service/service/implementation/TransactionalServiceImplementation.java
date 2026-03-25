@@ -8,7 +8,6 @@ import com.banka1.account_service.exception.ErrorCode;
 import com.banka1.account_service.repository.AccountRepository;
 import com.banka1.account_service.service.TransactionalService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +19,8 @@ public class TransactionalServiceImplementation implements TransactionalService 
     private final AccountRepository accountRepository;
 
     public void debit(Account account, BigDecimal amount) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0)
+            throw new IllegalArgumentException("Iznos mora biti veci od 0");
         if(account.getRaspolozivoStanje().compareTo(amount)<0)
             throw new BusinessException(ErrorCode.INSUFFICIENT_FUNDS,ErrorCode.INSUFFICIENT_FUNDS.getTitle());
         if(account.getDnevnaPotrosnja().add(amount).compareTo(account.getDnevniLimit())>0)
@@ -34,6 +35,8 @@ public class TransactionalServiceImplementation implements TransactionalService 
         accountRepository.save(account);
     }
     public void credit(Account account, BigDecimal amount) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0)
+            throw new IllegalArgumentException("Iznos mora biti veci od 0");
         account.setStanje(account.getStanje().add(amount));
         account.setRaspolozivoStanje(account.getRaspolozivoStanje().add(amount));
         //todo promenjeno sa saveAndFlush na save, double check

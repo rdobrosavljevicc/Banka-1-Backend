@@ -61,7 +61,7 @@ public class EmployeeServiceImplementation implements EmployeeService {
     {
         this.restClientService = restClientService;
         this.rabbitClient = rabbitClient;
-        this.random=new Random();
+        this.random = seed != null ? new Random(seed) : new Random();
         this.currencyRepository=currencyRepository;
         this.sifraDelatnostiRepository=sifraDelatnostiRepository;
         this.companyRepository=companyRepository;
@@ -141,6 +141,8 @@ public class EmployeeServiceImplementation implements EmployeeService {
                                  Long vlasnikId,
                                  String name,
                                  String surname,
+                                 String username,
+                                 String email,
                                  Jwt jwt,
                                  Currency currency,
                                  Company company,
@@ -151,6 +153,8 @@ public class EmployeeServiceImplementation implements EmployeeService {
         account.setPrezimeVlasnikaRacuna(surname);
         account.setNazivRacuna(naziv);
         account.setVlasnik(vlasnikId);
+        account.setUsername(username);
+        account.setEmail(email);
         account.setZaposlen(((Number) jwt.getClaim(appPropertiesId)).longValue());
         account.setDatumIVremeKreiranja(LocalDateTime.now());
         account.setCurrency(currency);
@@ -171,7 +175,7 @@ public class EmployeeServiceImplementation implements EmployeeService {
         ClientInfoResponseDto clientInfoResponseDto = resolveClientId(fxDto.getIdVlasnika(), fxDto.getJmbg());
         String broj = generateAccountNumber(String.valueOf(fxDto.getTipRacuna().getVal()));
         Account account = new FxAccount(fxDto.getTipRacuna());
-        populateAccount(account, broj, fxDto.getNazivRacuna(), clientInfoResponseDto.getId(), clientInfoResponseDto.getName(),clientInfoResponseDto.getLastName(),jwt, currency, company,fxDto.getInitialBalance());
+        populateAccount(account, broj, fxDto.getNazivRacuna(), clientInfoResponseDto.getId(), clientInfoResponseDto.getName(),clientInfoResponseDto.getLastName(), clientInfoResponseDto.getUsername(), clientInfoResponseDto.getEmail(), jwt, currency, company,fxDto.getInitialBalance());
         accountRepository.save(account);
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
@@ -194,7 +198,7 @@ public class EmployeeServiceImplementation implements EmployeeService {
         ClientInfoResponseDto clientInfoResponseDto = resolveClientId(checkingDto.getIdVlasnika(), checkingDto.getJmbg());
         String broj = generateAccountNumber(String.valueOf(checkingDto.getVrstaRacuna().getVal()));
         Account account = new CheckingAccount(checkingDto.getVrstaRacuna());
-        populateAccount(account, broj, checkingDto.getNazivRacuna(), clientInfoResponseDto.getId(), clientInfoResponseDto.getName(),clientInfoResponseDto.getLastName(),jwt, currency, company,checkingDto.getInitialBalance());
+        populateAccount(account, broj, checkingDto.getNazivRacuna(), clientInfoResponseDto.getId(), clientInfoResponseDto.getName(),clientInfoResponseDto.getLastName(), clientInfoResponseDto.getUsername(), clientInfoResponseDto.getEmail(), jwt, currency, company,checkingDto.getInitialBalance());
         accountRepository.save(account);
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override

@@ -178,10 +178,10 @@ public class ClientServiceImplementation implements ClientService {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                if(account.getUsername()==null || account.getEmail()==null)
-                    throw new RuntimeException("Ne sme null");
-                rabbitClient.sendEmailNotification(new EmailDto(account.getUsername(),account.getEmail(), EmailType.ACCOUNT_DEACTIVATED));
                 if (editStatus.getStatus() == Status.INACTIVE) {
+                    if (account.getUsername() != null && account.getEmail() != null) {
+                        rabbitClient.sendEmailNotification(new EmailDto(account.getUsername(), account.getEmail(), EmailType.ACCOUNT_DEACTIVATED));
+                    }
                     rabbitClient.sendCardEvent(new CardEventDto(account.getVlasnik(), account.getBrojRacuna(), CardEventType.CARD_DEACTIVATE));
                 }
             }

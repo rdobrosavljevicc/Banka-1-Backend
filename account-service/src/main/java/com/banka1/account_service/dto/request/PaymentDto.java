@@ -50,6 +50,7 @@ public class PaymentDto {
      * prema toAmount.
      */
     @NotNull(message = "Unesi iznos pre konverzije")
+    @DecimalMin(value = "0.0", inclusive = false, message = "Iznos pre konverzije mora biti veci od 0")
     private BigDecimal fromAmount;
 
     /**
@@ -60,6 +61,7 @@ public class PaymentDto {
      * kursnim paritetu.
      */
     @NotNull(message = "Unesi iznos posle konverzije")
+    @DecimalMin(value = "0.0", inclusive = false, message = "Iznos posle konverzije mora biti veci od 0")
     private BigDecimal toAmount;
 
     /**
@@ -72,5 +74,6 @@ public class PaymentDto {
     /**
      * ID klijenta koji inicira transfer (opciono, za audit log).
      */
+    @NotNull(message = "Unesi id clienta")
     private Long clientId;
 }
