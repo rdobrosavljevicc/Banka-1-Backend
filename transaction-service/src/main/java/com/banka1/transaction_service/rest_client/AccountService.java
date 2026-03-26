@@ -36,6 +36,14 @@ public class AccountService {
                 .body(UpdatedBalanceResponseDto.class);
     }
 
+    public UpdatedBalanceResponseDto transaction(PaymentDto paymentDto) {
+        return restClient.post()
+                .uri("/internal/accounts/transaction")
+                .body(paymentDto)
+                .retrieve()
+                .body(UpdatedBalanceResponseDto.class);
+    }
+
     public AccountDetailsResponseDto getDetails(String accountNumber)
     {
         return restClient.get()

@@ -23,9 +23,9 @@ public class TransactionalServiceImplementation implements TransactionalService 
             throw new IllegalArgumentException("Iznos mora biti veci od 0");
         if(account.getRaspolozivoStanje().compareTo(amount)<0)
             throw new BusinessException(ErrorCode.INSUFFICIENT_FUNDS,ErrorCode.INSUFFICIENT_FUNDS.getTitle());
-        if(account.getDnevnaPotrosnja().add(amount).compareTo(account.getDnevniLimit())>0)
+        if(account.getDnevniLimit() != null && account.getDnevnaPotrosnja().add(amount).compareTo(account.getDnevniLimit())>0)
             throw new BusinessException(ErrorCode.DAILY_LIMIT_EXCEEDED,ErrorCode.DAILY_LIMIT_EXCEEDED.getTitle());
-        if(account.getMesecnaPotrosnja().add(amount).compareTo(account.getMesecniLimit())>0)
+        if(account.getMesecniLimit() != null && account.getMesecnaPotrosnja().add(amount).compareTo(account.getMesecniLimit())>0)
             throw new BusinessException(ErrorCode.MONTHLY_LIMIT_EXCEEDED,ErrorCode.MONTHLY_LIMIT_EXCEEDED.getTitle());
         account.setStanje(account.getStanje().subtract(amount));
         account.setRaspolozivoStanje(account.getRaspolozivoStanje().subtract(amount));
@@ -43,22 +43,26 @@ public class TransactionalServiceImplementation implements TransactionalService 
         accountRepository.save(account);
     }
 
-    //todo kada napravis bankovni racun sacuvaj bankaAmount tu
     @Transactional
     @Override
-    public UpdatedBalanceResponseDto transfer(Account from, Account to,Account bankSender,Account bankTarget,PaymentDto paymentDto) {
-        if(from.getCurrency().getOznaka()==to.getCurrency().getOznaka())
-        {
-            debit(from, paymentDto.getFromAmount());
-            credit(to,paymentDto.getToAmount());
-        }
-        else {
-            debit(from, paymentDto.getFromAmount());
-            credit(bankSender, paymentDto.getFromAmount());
+    public UpdatedBalanceResponseDto transfer(Account from, Account to, Account bankSender, Account bankTarget, PaymentDto paymentDto) {
+        BigDecimal commission = paymentDto.getCommission();
+        if (from.getCurrency().getOznaka() == to.getCurrency().getOznaka()) {
+            // Same currency: debit fromAmount + commission from sender, bank earns commission, recipient gets toAmount
+            debit(from, paymentDto.getFromAmount().add(commission));
+            if (commission.compareTo(BigDecimal.ZERO) > 0) {
+                credit(bankSender, commission);
+            }
+            credit(to, paymentDto.getToAmount());
+        } else {
+            // Cross-currency: commission is in source currency — deducted from sender, bank keeps it
+            // Bank exchanges fromAmount at its rate: receives fromAmount+commission in source, pays toAmount in target
+            debit(from, paymentDto.getFromAmount().add(commission));
+            credit(bankSender, paymentDto.getFromAmount().add(commission));
             debit(bankTarget, paymentDto.getToAmount());
-            credit(to, paymentDto.getToAmount().subtract(paymentDto.getCommission()));
+            credit(to, paymentDto.getToAmount());
         }
-        return new UpdatedBalanceResponseDto(from.getStanje(),to.getStanje());
+        return new UpdatedBalanceResponseDto(from.getStanje(), to.getStanje());
     }
 
 

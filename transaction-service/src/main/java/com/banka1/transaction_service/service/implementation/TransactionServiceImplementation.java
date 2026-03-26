@@ -68,9 +68,15 @@ public class TransactionServiceImplementation implements TransactionService {
         Long id=transactionServiceInternal.create(jwt,newPaymentDto,infoResponseDto,conversionResponseDto);
         UpdatedBalanceResponseDto updatedBalanceResponseDto=null;
         TransactionStatus transactionStatus = TransactionStatus.DENIED;
+        PaymentDto paymentDto = new PaymentDto(newPaymentDto.getFromAccountNumber(), newPaymentDto.getToAccountNumber(), conversionResponseDto.fromAmount(), conversionResponseDto.toAmount(), conversionResponseDto.commission(), ((Number) jwt.getClaim(appPropertiesId)).longValue());
+        boolean sameOwner = infoResponseDto.getFromVlasnik().equals(infoResponseDto.getToVlasnik());
         for(int i=0;i<3;i++) {
             try {
-                updatedBalanceResponseDto = accountService.transfer(new PaymentDto(newPaymentDto.getFromAccountNumber(), newPaymentDto.getToAccountNumber(), conversionResponseDto.fromAmount(), conversionResponseDto.toAmount(), conversionResponseDto.commission(), ((Number) jwt.getClaim(appPropertiesId)).longValue()));
+                if (sameOwner) {
+                    updatedBalanceResponseDto = accountService.transfer(paymentDto);
+                } else {
+                    updatedBalanceResponseDto = accountService.transaction(paymentDto);
+                }
                 transactionStatus=TransactionStatus.COMPLETED;
                 break;
             } catch (RestClientException e) {

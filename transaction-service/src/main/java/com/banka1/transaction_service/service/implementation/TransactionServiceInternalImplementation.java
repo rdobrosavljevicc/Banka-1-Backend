@@ -64,7 +64,7 @@ public class TransactionServiceInternalImplementation implements TransactionServ
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                rabbitClient.sendEmailNotification(new EmailDto(infoResponseDto.getFromEmail(),infoResponseDto.getFromUsername(), (transactionStatus==TransactionStatus.COMPLETED)?EmailType.TRANSACTION_COMPLETED:EmailType.TRANSACTION_DENIED));
+                rabbitClient.sendEmailNotification(new EmailDto(infoResponseDto.getFromUsername(),infoResponseDto.getFromEmail(), (transactionStatus==TransactionStatus.COMPLETED)?EmailType.TRANSACTION_COMPLETED:EmailType.TRANSACTION_DENIED));
 
             }
         });
