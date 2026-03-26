@@ -9,9 +9,11 @@ import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public interface TransactionService {
     String newPayment(Jwt jwt, NewPaymentDto newPaymentDto);
-    String approveTransaction(Jwt jwt, Long id, ApproveDto approveDto);
-    Page<TransactionResponseDto> findAllTransactions(Jwt jwt, Long id, TransactionStatus transactionStatus, LocalDate fromDate, LocalDate toDate, BigDecimal minAmount, BigDecimal maxAmount, int page, int size);
+    Page<TransactionResponseDto> findAllTransactions(Jwt jwt, String accountNumber, int page, int size);
+    Page<TransactionResponseDto> findPayments(Jwt jwt, String accountNumber, TransactionStatus transactionStatus, LocalDateTime fromDate, LocalDateTime toDate, BigDecimal initialAmountMin, BigDecimal initialAmountMax, BigDecimal finalAmountMin, BigDecimal finalAmountMax, int page, int size);
+
 }

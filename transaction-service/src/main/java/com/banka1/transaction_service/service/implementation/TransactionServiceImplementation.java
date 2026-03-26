@@ -12,6 +12,7 @@ import com.banka1.transaction_service.exception.ErrorCode;
 import com.banka1.transaction_service.rabbitMQ.EmailDto;
 import com.banka1.transaction_service.rabbitMQ.EmailType;
 import com.banka1.transaction_service.rabbitMQ.RabbitClient;
+import com.banka1.transaction_service.repository.PaymentRepository;
 import com.banka1.transaction_service.rest_client.AccountService;
 import com.banka1.transaction_service.rest_client.ClientService;
 import com.banka1.transaction_service.rest_client.ExchangeService;
@@ -24,12 +25,15 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @RequiredArgsConstructor
 @Getter
@@ -45,6 +49,7 @@ public class TransactionServiceImplementation implements TransactionService {
     @Value("${banka.security.id}")
     private String appPropertiesId;
     private final TransactionServiceInternal transactionServiceInternal;
+    private final PaymentRepository paymentRepository;
 
 
 
@@ -78,12 +83,27 @@ public class TransactionServiceImplementation implements TransactionService {
         return "Payment nije bio uspesan";
     }
 
-
+    @Transactional
+    @Override
+    public Page<TransactionResponseDto> findAllTransactions(Jwt jwt, String accountNumber, int page, int size) {
+        AccountDetailsResponseDto accountDetailsResponseDto=accountService.getDetails(accountNumber);
+        if(accountDetailsResponseDto == null)
+            throw new IllegalStateException("Sistemska greska");
+        if(accountDetailsResponseDto.getVlasnik()==null || !accountDetailsResponseDto.getVlasnik().equals(((Number) jwt.getClaim(appPropertiesId)).longValue()))
+            throw new IllegalArgumentException("Nisi vlasnik racuna");
+        return paymentRepository.findByAccountNumber(accountNumber, PageRequest.of(page,size)).map(TransactionResponseDto::new);
+    }
 
     @Override
-    public String approveTransaction(Jwt jwt, Long id, ApproveDto approveDto) {
-        return "";
+    public Page<TransactionResponseDto> findPayments(Jwt jwt, String accountNumber, TransactionStatus transactionStatus, LocalDateTime fromDate, LocalDateTime toDate, BigDecimal initialAmountMin, BigDecimal initialAmountMax, BigDecimal finalAmountMin, BigDecimal finalAmountMax, int page, int size) {
+        AccountDetailsResponseDto accountDetailsResponseDto=accountService.getDetails(accountNumber);
+        if(accountDetailsResponseDto == null)
+            throw new IllegalStateException("Sistemska greska");
+        if(accountDetailsResponseDto.getVlasnik()==null || !accountDetailsResponseDto.getVlasnik().equals(((Number) jwt.getClaim(appPropertiesId)).longValue()))
+            throw new IllegalArgumentException("Nisi vlasnik racuna");
+        return paymentRepository.searchPayments(accountNumber,transactionStatus,fromDate,toDate,initialAmountMin,initialAmountMax,finalAmountMin,finalAmountMax, PageRequest.of(page,size)).map(TransactionResponseDto::new);
     }
+
 
     //todo za sad ovo ostavljam ovde, validacije bi trebalo da budu zaseban servis, if-ove sam ostavio just in case
     //TODO menjati exceptione
@@ -97,11 +117,6 @@ public class TransactionServiceImplementation implements TransactionService {
 //    }
 
 
-    @Override
-    public Page<TransactionResponseDto> findAllTransactions(Jwt jwt, Long id, TransactionStatus transactionStatus, LocalDate fromDate, LocalDate toDate, BigDecimal minAmount, BigDecimal maxAmount, int page, int size) {
-        //validate(account,jwt);
-        return null;
-    }
 
 
 

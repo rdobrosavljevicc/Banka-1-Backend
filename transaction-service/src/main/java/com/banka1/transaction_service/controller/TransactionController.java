@@ -25,10 +25,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 
 @RestController
-@RequestMapping("/transaction")
 @AllArgsConstructor
 //@PreAuthorize("hasRole('CLIENT_BASIC')")
 
@@ -49,22 +49,10 @@ public class TransactionController {
         return new ResponseEntity<>(transactionService.newPayment(jwt,newPaymentDto), HttpStatus.OK);
     }
 
-    @Operation(summary = "Approve a transaction")
-    @ApiResponses({
-            @ApiResponse(responseCode = "400", description = "Invalid request body",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))),
-            @ApiResponse(responseCode = "401", description = "Unauthorized",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))),
-            @ApiResponse(responseCode = "403", description = "Forbidden",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))),
-            @ApiResponse(responseCode = "404", description = "Transaction not found",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDto.class)))
-    })
-    @PostMapping("/approve/{id}")
-    @PreAuthorize("hasRole('CLIENT_BASIC')")
-    public ResponseEntity<String> approveTransaction(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id, @RequestBody @Valid ApproveDto approveDto) {
-        return new ResponseEntity<>(transactionService.approveTransaction(jwt,id,approveDto), HttpStatus.OK);
-    }
+
+
+
+
     @Operation(summary = "Get account transactions")
     @ApiResponses({
             @ApiResponse(responseCode = "401", description = "Unauthorized",
@@ -74,16 +62,29 @@ public class TransactionController {
             @ApiResponse(responseCode = "404", description = "Account not found",
                     content = @Content(schema = @Schema(implementation = ErrorResponseDto.class)))
     })
-    @GetMapping("/accounts/{id}")
+    @GetMapping("/accounts/{accountNumber}")
     //todo proveriti da li uospte treba za BASIC(EMPLOYEE_BASIC)
     @PreAuthorize("hasAnyRole('CLIENT_BASIC','BASIC')")
     public ResponseEntity<Page<TransactionResponseDto>> findAllTransactions(@AuthenticationPrincipal Jwt jwt,
-                                                                            @PathVariable Long id,
+                                                                            @PathVariable String accountNumber,
+                                                                            @RequestParam(defaultValue = "0") @Min(value = 0) int page,
+                                                                            @RequestParam(defaultValue = "10") @Min(value = 1) @Max(value = 100) int size) {
+
+        return new ResponseEntity<>(transactionService.findAllTransactions(jwt,accountNumber,page,size), HttpStatus.OK);
+    }
+
+    @GetMapping("/api/payments")
+    //todo proveriti da li uospte treba za BASIC(EMPLOYEE_BASIC)
+    @PreAuthorize("hasAnyRole('CLIENT_BASIC','BASIC')")
+    public ResponseEntity<Page<TransactionResponseDto>> findPayments(@AuthenticationPrincipal Jwt jwt,
+                                                                            @RequestParam(required = false) String accountNumber,
                                                                             @RequestParam(required = false) String status,
-                                                                            @RequestParam(required = false) LocalDate fromDate,
-                                                                            @RequestParam(required = false) LocalDate toDate,
-                                                                            @RequestParam(required = false) BigDecimal minAmount,
-                                                                            @RequestParam(required = false) BigDecimal maxAmount,
+                                                                            @RequestParam(required = false) LocalDateTime fromDate,
+                                                                            @RequestParam(required = false) LocalDateTime toDate,
+                                                                            @RequestParam(required = false) BigDecimal initialAmountMin,
+                                                                            @RequestParam(required = false) BigDecimal initialAmountMax,
+                                                                            @RequestParam(required = false) BigDecimal finalAmountMin,
+                                                                            @RequestParam(required = false) BigDecimal finalAmountMax,
                                                                             @RequestParam(defaultValue = "0") @Min(value = 0) int page,
                                                                             @RequestParam(defaultValue = "10") @Min(value = 1) @Max(value = 100) int size) {
         TransactionStatus transactionStatus=null;
@@ -94,7 +95,8 @@ public class TransactionController {
             catch (IllegalArgumentException e) {
                 throw new IllegalArgumentException("Nevalidan status");
             }
-        return new ResponseEntity<>(transactionService.findAllTransactions(jwt,id,transactionStatus,fromDate,toDate,minAmount,maxAmount,page,size), HttpStatus.OK);
+        return new ResponseEntity<>(transactionService.findPayments(jwt,accountNumber,transactionStatus,fromDate,toDate,initialAmountMin,initialAmountMax,finalAmountMin,finalAmountMax,page,size), HttpStatus.OK);
     }
+
 
 }

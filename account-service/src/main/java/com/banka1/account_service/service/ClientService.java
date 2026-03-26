@@ -83,7 +83,7 @@ public interface ClientService {
      * Dostupno samo vlasniku racuna.
      *
      * @param jwt           JWT token vlasnika
-     * @param accountNumber 18-cifreni broj racuna
+     * @param accountNumber 19-cifreni broj racuna
      * @return detaljan prikaz racuna
      */
     AccountDetailsResponseDto getDetails(Jwt jwt, String accountNumber);

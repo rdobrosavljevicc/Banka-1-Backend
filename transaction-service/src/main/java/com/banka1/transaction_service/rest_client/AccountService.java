@@ -1,6 +1,7 @@
 package com.banka1.transaction_service.rest_client;
 
 import com.banka1.transaction_service.dto.request.PaymentDto;
+import com.banka1.transaction_service.dto.response.AccountDetailsResponseDto;
 import com.banka1.transaction_service.dto.response.InfoResponseDto;
 import com.banka1.transaction_service.dto.response.UpdatedBalanceResponseDto;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -33,5 +34,13 @@ public class AccountService {
                 .body(paymentDto)
                 .retrieve()
                 .body(UpdatedBalanceResponseDto.class);
+    }
+
+    public AccountDetailsResponseDto getDetails(String accountNumber)
+    {
+        return restClient.get()
+                .uri("/api/accounts/{accountNumber}", accountNumber)
+                .retrieve()
+                .body(AccountDetailsResponseDto.class);
     }
 }
